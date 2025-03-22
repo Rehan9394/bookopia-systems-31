@@ -20,13 +20,11 @@ import {
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
+import { DateRange } from 'react-day-picker';
 
 const Bookings = () => {
   const [view, setView] = useState<'grid' | 'list'>('list');
-  const [dateRange, setDateRange] = useState<{
-    from: Date | undefined;
-    to: Date | undefined;
-  }>({
+  const [dateRange, setDateRange] = useState<DateRange>({
     from: undefined,
     to: undefined,
   });
@@ -108,3 +106,4 @@ const Bookings = () => {
 };
 
 export default Bookings;
+

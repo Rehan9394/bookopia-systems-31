@@ -10,7 +10,7 @@ import {
   Users, 
   BookOpen, 
   DollarSign, 
-  Mop, 
+  Brush, 
   Network, 
   ChevronLeft, 
   ChevronRight, 
@@ -108,7 +108,7 @@ export function Sidebar() {
         <NavGroup title="Management" collapsed={collapsed}>
           <NavItem to="/rooms" icon={Home} label="Rooms" collapsed={collapsed} />
           <NavItem to="/expenses" icon={DollarSign} label="Expenses" collapsed={collapsed} />
-          <NavItem to="/cleaning" icon={Mop} label="Cleaning Status" collapsed={collapsed} />
+          <NavItem to="/cleaning" icon={Brush} label="Cleaning Status" collapsed={collapsed} />
           <NavItem to="/channel" icon={Network} label="Channel Manager" collapsed={collapsed} />
         </NavGroup>
         
@@ -127,3 +127,4 @@ export function Sidebar() {
     </div>
   );
 }
+
