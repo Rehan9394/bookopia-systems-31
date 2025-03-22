@@ -10,6 +10,14 @@ import Dashboard from "./pages/Dashboard";
 import Bookings from "./pages/Bookings";
 import Availability from "./pages/Availability";
 import Rooms from "./pages/Rooms";
+import CleaningStatus from "./pages/CleaningStatus";
+import Expenses from "./pages/Expenses";
+import ChannelManager from "./pages/ChannelManager";
+import Users from "./pages/Users";
+import Owners from "./pages/Owners";
+import Reports from "./pages/Reports";
+import AuditLogs from "./pages/AuditLogs";
+import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
@@ -44,14 +52,14 @@ const App = () => (
             <Route path="bookings" element={<Bookings />} />
             <Route path="availability" element={<Availability />} />
             <Route path="rooms" element={<Rooms />} />
-            <Route path="expenses" element={<Navigate to="/" />} />
-            <Route path="cleaning" element={<Navigate to="/" />} />
-            <Route path="channel" element={<Navigate to="/" />} />
-            <Route path="users" element={<Navigate to="/" />} />
-            <Route path="owners" element={<Navigate to="/" />} />
-            <Route path="reports" element={<Navigate to="/" />} />
-            <Route path="audit" element={<Navigate to="/" />} />
-            <Route path="settings" element={<Navigate to="/" />} />
+            <Route path="expenses" element={<Expenses />} />
+            <Route path="cleaning" element={<CleaningStatus />} />
+            <Route path="channel" element={<ChannelManager />} />
+            <Route path="users" element={<Users />} />
+            <Route path="owners" element={<Owners />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="audit" element={<AuditLogs />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
