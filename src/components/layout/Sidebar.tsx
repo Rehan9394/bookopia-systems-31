@@ -11,7 +11,6 @@ import {
   BookOpen, 
   DollarSign, 
   Brush, 
-  Network, 
   ChevronLeft, 
   ChevronRight, 
   LogOut, 
@@ -109,7 +108,6 @@ export function Sidebar() {
           <NavItem to="/rooms" icon={Home} label="Rooms" collapsed={collapsed} />
           <NavItem to="/expenses" icon={DollarSign} label="Expenses" collapsed={collapsed} />
           <NavItem to="/cleaning" icon={Brush} label="Cleaning Status" collapsed={collapsed} />
-          <NavItem to="/channel" icon={Network} label="Channel Manager" collapsed={collapsed} />
         </NavGroup>
         
         <NavGroup title="Administration" collapsed={collapsed}>
@@ -127,4 +125,3 @@ export function Sidebar() {
     </div>
   );
 }
-

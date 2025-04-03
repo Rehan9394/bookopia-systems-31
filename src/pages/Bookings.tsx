@@ -59,6 +59,16 @@ const Bookings = () => {
   useEffect(() => {
     console.log('Applying filters:', { statusFilter, propertyFilter, dateRange, searchQuery });
     // In a real app, this would fetch filtered data from an API
+    
+    // Update URL with filters for sharing/bookmarking
+    const params = new URLSearchParams();
+    if (statusFilter !== 'all') params.set('status', statusFilter);
+    if (propertyFilter !== 'all') params.set('property', propertyFilter);
+    if (searchQuery) params.set('q', searchQuery);
+    if (dateRange.from) params.set('from', dateRange.from.toISOString());
+    if (dateRange.to) params.set('to', dateRange.to.toISOString());
+    
+    setSearchParams(params, { replace: true });
   }, [statusFilter, propertyFilter, dateRange, searchQuery]);
 
   // Handle date range change
@@ -67,6 +77,16 @@ const Bookings = () => {
     if (range?.from && range?.to) {
       toast({
         description: `Showing bookings from ${format(range.from, 'PPP')} to ${format(range.to, 'PPP')}`,
+      });
+    }
+  };
+
+  // Handle search
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      toast({
+        description: `Searching for "${searchQuery}"`,
       });
     }
   };
@@ -101,13 +121,15 @@ const Bookings = () => {
       <Card className="p-6 mb-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search by guest name, reference..." 
-              className="pl-10"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+            <form onSubmit={handleSearch}>
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search by guest name, reference..." 
+                className="pl-10"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </form>
           </div>
           
           <Popover>
