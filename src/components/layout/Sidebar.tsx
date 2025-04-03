@@ -1,98 +1,55 @@
-
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { 
-  BarChart, 
-  Calendar, 
-  Home, 
-  Settings, 
-  Users, 
-  BookOpen, 
-  DollarSign, 
-  Brush, 
-  ChevronLeft, 
-  ChevronRight, 
-  LogOut, 
-  FileText,
-  UserCheck,
-  ClipboardList
-} from 'lucide-react';
+import { BarChart, Calendar, Home, Settings, Users, BookOpen, DollarSign, Brush, ChevronLeft, ChevronRight, LogOut, FileText, UserCheck, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
 interface NavItemProps {
   to: string;
   icon: React.ElementType;
   label: string;
   collapsed: boolean;
 }
-
-const NavItem = ({ to, icon: Icon, label, collapsed }: NavItemProps) => {
-  return (
-    <NavLink 
-      to={to} 
-      className={({ isActive }) => cn(
-        "flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 group",
-        collapsed ? "justify-center" : "",
-        isActive 
-          ? "bg-primary/10 text-primary font-medium" 
-          : "text-foreground/70 hover:bg-accent hover:text-foreground"
-      )}
-    >
+const NavItem = ({
+  to,
+  icon: Icon,
+  label,
+  collapsed
+}: NavItemProps) => {
+  return <NavLink to={to} className={({
+    isActive
+  }) => cn("flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 group", collapsed ? "justify-center" : "", isActive ? "bg-primary/10 text-primary font-medium" : "text-foreground/70 hover:bg-accent hover:text-foreground")}>
       <Icon className={cn("h-5 w-5 transition-transform", !collapsed && "group-hover:scale-110")} />
       {!collapsed && <span>{label}</span>}
-      {collapsed && (
-        <div className="absolute left-16 rounded-md px-2 py-1 ml-6 bg-popover text-foreground shadow-md opacity-0 -translate-x-3 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-x-0 transition-all duration-200 whitespace-nowrap z-50">
+      {collapsed && <div className="absolute left-16 rounded-md px-2 py-1 ml-6 bg-popover text-foreground shadow-md opacity-0 -translate-x-3 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-x-0 transition-all duration-200 whitespace-nowrap z-50">
           {label}
-        </div>
-      )}
-    </NavLink>
-  );
+        </div>}
+    </NavLink>;
 };
-
 interface NavGroupProps {
   title: string;
   children: React.ReactNode;
   collapsed: boolean;
 }
-
-const NavGroup = ({ title, children, collapsed }: NavGroupProps) => {
-  return (
-    <div className="mb-6">
-      {!collapsed && (
-        <div className="text-xs font-semibold text-foreground/50 uppercase tracking-wider px-3 mb-2">
+const NavGroup = ({
+  title,
+  children,
+  collapsed
+}: NavGroupProps) => {
+  return <div className="mb-6">
+      {!collapsed && <div className="text-xs font-semibold text-foreground/50 uppercase tracking-wider px-3 mb-2">
           {title}
-        </div>
-      )}
+        </div>}
       <div className="space-y-1">
         {children}
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
-
-  return (
-    <div 
-      className={cn(
-        "h-screen sticky top-0 bg-card border-r border-border flex flex-col transition-all duration-300 ease-in-out",
-        collapsed ? "w-16" : "w-64"
-      )}
-    >
+  return <div className={cn("h-screen sticky top-0 bg-card border-r border-border flex flex-col transition-all duration-300 ease-in-out", collapsed ? "w-16" : "w-64")}>
       <div className="flex items-center justify-between h-16 px-3 border-b border-border">
-        {!collapsed && (
-          <div className="font-semibold text-lg tracking-tight">
-            HotelManager
-          </div>
-        )}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setCollapsed(!collapsed)}
-          className={cn("rounded-full", collapsed && "mx-auto")}
-        >
+        {!collapsed && <div className="font-semibold text-lg tracking-tight">DVR Group</div>}
+        <Button variant="ghost" size="icon" onClick={() => setCollapsed(!collapsed)} className={cn("rounded-full", collapsed && "mx-auto")}>
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </Button>
       </div>
@@ -122,6 +79,5 @@ export function Sidebar() {
       <div className="p-2 border-t border-border">
         <NavItem to="/logout" icon={LogOut} label="Logout" collapsed={collapsed} />
       </div>
-    </div>
-  );
+    </div>;
 }
