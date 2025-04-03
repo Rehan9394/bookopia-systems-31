@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -15,6 +14,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 
 type OwnerFormData = {
   firstName: string;
@@ -78,13 +78,23 @@ const OwnerAdd = () => {
     // Handle nested objects
     if (name.includes('.')) {
       const [parentKey, childKey] = name.split('.');
-      setFormData({
-        ...formData,
-        [parentKey]: {
-          ...formData[parentKey as keyof typeof formData],
-          [childKey]: value,
-        },
-      });
+      if (parentKey === 'accountingInfo') {
+        setFormData({
+          ...formData,
+          accountingInfo: {
+            ...formData.accountingInfo,
+            [childKey]: value,
+          },
+        });
+      } else if (parentKey === 'taxInfo') {
+        setFormData({
+          ...formData,
+          taxInfo: {
+            ...formData.taxInfo,
+            [childKey]: value,
+          },
+        });
+      }
     } else {
       setFormData({
         ...formData,
@@ -97,13 +107,23 @@ const OwnerAdd = () => {
     // Handle nested objects
     if (name.includes('.')) {
       const [parentKey, childKey] = name.split('.');
-      setFormData({
-        ...formData,
-        [parentKey]: {
-          ...formData[parentKey as keyof typeof formData],
-          [childKey]: value,
-        },
-      });
+      if (parentKey === 'accountingInfo') {
+        setFormData({
+          ...formData,
+          accountingInfo: {
+            ...formData.accountingInfo,
+            [childKey]: value,
+          },
+        });
+      } else if (parentKey === 'taxInfo') {
+        setFormData({
+          ...formData,
+          taxInfo: {
+            ...formData.taxInfo,
+            [childKey]: value,
+          },
+        });
+      }
     } else {
       setFormData({
         ...formData,
