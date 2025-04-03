@@ -8,11 +8,16 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
 import Dashboard from "./pages/Dashboard";
 import Bookings from "./pages/Bookings";
+import BookingView from "./pages/BookingView";
+import BookingAdd from "./pages/BookingAdd";
+import BookingEdit from "./pages/BookingEdit";
 import Availability from "./pages/Availability";
 import Rooms from "./pages/Rooms";
+import RoomView from "./pages/RoomView";
+import RoomAdd from "./pages/RoomAdd";
+import RoomEdit from "./pages/RoomEdit";
 import CleaningStatus from "./pages/CleaningStatus";
 import Expenses from "./pages/Expenses";
-import ChannelManager from "./pages/ChannelManager";
 import Users from "./pages/Users";
 import Owners from "./pages/Owners";
 import Reports from "./pages/Reports";
@@ -50,11 +55,16 @@ const App = () => (
           <Route path="/" element={<MainLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="bookings" element={<Bookings />} />
+            <Route path="bookings/:id" element={<BookingView />} />
+            <Route path="bookings/new" element={<BookingAdd />} />
+            <Route path="bookings/edit/:id" element={<BookingEdit />} />
             <Route path="availability" element={<Availability />} />
             <Route path="rooms" element={<Rooms />} />
+            <Route path="rooms/view/:id" element={<RoomView />} />
+            <Route path="rooms/add" element={<RoomAdd />} />
+            <Route path="rooms/edit/:id" element={<RoomEdit />} />
             <Route path="expenses" element={<Expenses />} />
             <Route path="cleaning" element={<CleaningStatus />} />
-            <Route path="channel" element={<ChannelManager />} />
             <Route path="users" element={<Users />} />
             <Route path="owners" element={<Owners />} />
             <Route path="reports" element={<Reports />} />
