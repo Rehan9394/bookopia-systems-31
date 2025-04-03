@@ -1,14 +1,17 @@
+
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { BarChart, Calendar, Home, Settings, Users, BookOpen, DollarSign, Brush, ChevronLeft, ChevronRight, LogOut, FileText, UserCheck, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+
 interface NavItemProps {
   to: string;
   icon: React.ElementType;
   label: string;
   collapsed: boolean;
 }
+
 const NavItem = ({
   to,
   icon: Icon,
@@ -25,11 +28,13 @@ const NavItem = ({
         </div>}
     </NavLink>;
 };
+
 interface NavGroupProps {
   title: string;
   children: React.ReactNode;
   collapsed: boolean;
 }
+
 const NavGroup = ({
   title,
   children,
@@ -44,8 +49,10 @@ const NavGroup = ({
       </div>
     </div>;
 };
+
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  
   return <div className={cn("h-screen sticky top-0 bg-card border-r border-border flex flex-col transition-all duration-300 ease-in-out", collapsed ? "w-16" : "w-64")}>
       <div className="flex items-center justify-between h-16 px-3 border-b border-border">
         {!collapsed && <div className="font-semibold text-lg tracking-tight">DVR Group</div>}

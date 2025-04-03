@@ -12,21 +12,82 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+
+// Mock data for rooms
+const roomsData = [
+  {
+    id: "1",
+    roomNumber: "101",
+    property: "Marina Tower",
+    type: "Deluxe Suite",
+    status: "available",
+    price: 150,
+  },
+  {
+    id: "2",
+    roomNumber: "102",
+    property: "Marina Tower",
+    type: "Standard Room",
+    status: "occupied",
+    price: 120,
+  },
+  {
+    id: "3",
+    roomNumber: "201",
+    property: "Downtown Heights",
+    type: "Premium Suite",
+    status: "maintenance",
+    price: 180,
+  },
+  {
+    id: "4",
+    roomNumber: "202",
+    property: "Downtown Heights",
+    type: "Family Room",
+    status: "available",
+    price: 165,
+  },
+];
 
 const Rooms = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [view, setView] = useState<'grid' | 'list'>('list');
   const [propertyFilter, setPropertyFilter] = useState<string>(searchParams.get('property') || "all");
   const [statusFilter, setStatusFilter] = useState<string>(searchParams.get('status') || "all");
   const [searchQuery, setSearchQuery] = useState<string>(searchParams.get('q') || "");
+  const [filteredRooms, setFilteredRooms] = useState(roomsData);
   
   // Apply filters when filter values change
   useEffect(() => {
     console.log('Applying filters:', { propertyFilter, statusFilter, searchQuery });
-    // In a real app, this would fetch filtered data from an API
+    
+    let filtered = [...roomsData];
+    
+    // Apply property filter
+    if (propertyFilter !== 'all') {
+      filtered = filtered.filter(room => room.property === propertyFilter);
+    }
+    
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(room => room.status === statusFilter);
+    }
+    
+    // Apply search query
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(room => 
+        room.roomNumber.toLowerCase().includes(query) || 
+        room.property.toLowerCase().includes(query) ||
+        room.type.toLowerCase().includes(query)
+      );
+    }
+    
+    setFilteredRooms(filtered);
     
     // Update URL with filters
     const params = new URLSearchParams();
@@ -45,6 +106,15 @@ const Rooms = () => {
         description: `Searching for "${searchQuery}"`,
       });
     }
+  };
+  
+  // Handle room actions
+  const handleViewRoom = (id: string) => {
+    navigate(`/rooms/view/${id}`);
+  };
+  
+  const handleEditRoom = (id: string) => {
+    navigate(`/rooms/edit/${id}`);
   };
   
   // Handle clearing filters
@@ -79,7 +149,7 @@ const Rooms = () => {
             <form onSubmit={handleSearch}>
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
-                placeholder="Search by room number, owner..." 
+                placeholder="Search by room number, property..." 
                 className="pl-10"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -114,7 +184,7 @@ const Rooms = () => {
         {(statusFilter !== "all" || propertyFilter !== "all" || searchQuery) && (
           <div className="mt-4 flex justify-between items-center">
             <div className="text-sm text-muted-foreground">
-              Active filters applied
+              {filteredRooms.length} room{filteredRooms.length !== 1 ? 's' : ''} found
             </div>
             <Button variant="ghost" size="sm" onClick={clearFilters}>
               Clear All Filters
@@ -125,7 +195,10 @@ const Rooms = () => {
       
       <RoomList 
         view={view} 
-        onViewChange={setView} 
+        onViewChange={setView}
+        rooms={filteredRooms}
+        onViewRoom={handleViewRoom}
+        onEditRoom={handleEditRoom}
       />
     </div>
   );

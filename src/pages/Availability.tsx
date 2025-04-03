@@ -1,289 +1,146 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
-import { useToast } from '@/hooks/use-toast';
-import { CalendarClock, ChevronLeft, ChevronRight, PlusCircle, RefreshCw, Filter, Calendar as CalendarIcon } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { cn } from '@/lib/utils';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Calendar, FilterX, Printer, DownloadCloud, List, ArrowRight, ArrowLeft, Info } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { format, addMonths, subMonths } from 'date-fns';
 
-interface RoomBooking {
+// Booking interface to define the structure of booking data
+interface Booking {
   id: string;
   guestName: string;
-  startDate: Date;
-  endDate: Date;
-  status: 'confirmed' | 'checked-in' | 'checked-out' | 'cancelled';
-}
-
-interface Room {
-  id: string;
-  number: string;
+  roomNumber: string;
   property: string;
-  type: string;
-  status: 'available' | 'occupied' | 'maintenance';
-  bookings: RoomBooking[];
+  checkIn: string;
+  checkOut: string;
+  status: 'confirmed' | 'checked-in' | 'checked-out' | 'cancelled';
+  totalPaid: string;
 }
-
-// Mock data
-const roomsData: Room[] = [
-  {
-    id: '1',
-    number: '101',
-    property: 'Marina Tower',
-    type: 'Deluxe Suite',
-    status: 'available',
-    bookings: [
-      {
-        id: 'b1',
-        guestName: 'John Smith',
-        startDate: new Date('2023-11-15'),
-        endDate: new Date('2023-11-18'),
-        status: 'confirmed'
-      },
-      {
-        id: 'b2',
-        guestName: 'Emma Johnson',
-        startDate: new Date('2023-11-20'),
-        endDate: new Date('2023-11-25'),
-        status: 'confirmed'
-      }
-    ]
-  },
-  {
-    id: '2',
-    number: '102',
-    property: 'Marina Tower',
-    type: 'Standard Room',
-    status: 'occupied',
-    bookings: [
-      {
-        id: 'b3',
-        guestName: 'Michael Chen',
-        startDate: new Date('2023-11-12'),
-        endDate: new Date('2023-11-17'),
-        status: 'checked-in'
-      }
-    ]
-  },
-  {
-    id: '3',
-    number: '201',
-    property: 'Downtown Heights',
-    type: 'Executive Suite',
-    status: 'maintenance',
-    bookings: []
-  },
-  {
-    id: '4',
-    number: '202',
-    property: 'Downtown Heights',
-    type: 'Standard Room',
-    status: 'available',
-    bookings: [
-      {
-        id: 'b4',
-        guestName: 'Sarah Davis',
-        startDate: new Date('2023-11-18'),
-        endDate: new Date('2023-11-20'),
-        status: 'confirmed'
-      }
-    ]
-  },
-  {
-    id: '5',
-    number: '301',
-    property: 'Marina Tower',
-    type: 'Deluxe Suite',
-    status: 'occupied',
-    bookings: [
-      {
-        id: 'b5',
-        guestName: 'Robert Wilson',
-        startDate: new Date('2023-11-14'),
-        endDate: new Date('2023-11-19'),
-        status: 'checked-in'
-      }
-    ]
-  },
-  {
-    id: '6',
-    number: '302',
-    property: 'Marina Tower',
-    type: 'Standard Room',
-    status: 'available',
-    bookings: [
-      {
-        id: 'b6',
-        guestName: 'Lisa Brown',
-        startDate: new Date('2023-11-22'),
-        endDate: new Date('2023-11-25'),
-        status: 'confirmed'
-      }
-    ]
-  },
-  {
-    id: '7',
-    number: '401',
-    property: 'Downtown Heights',
-    type: 'Penthouse Suite',
-    status: 'available',
-    bookings: []
-  }
-];
-
-// Generate array of dates for the calendar view
-const generateDates = (startDate: Date, days: number) => {
-  const dates = [];
-  for (let i = 0; i < days; i++) {
-    const date = new Date(startDate);
-    date.setDate(date.getDate() + i);
-    dates.push(date);
-  }
-  return dates;
-};
-
-// Calculate booking position and width for the calendar view
-const calculateBookingStyle = (booking: RoomBooking, viewStartDate: Date, totalDays: number) => {
-  const startDate = new Date(booking.startDate);
-  const endDate = new Date(booking.endDate);
-  
-  // Calculate days from view start to booking start
-  const startDiff = Math.max(0, Math.floor((startDate.getTime() - viewStartDate.getTime()) / (24 * 60 * 60 * 1000)));
-  
-  // Calculate booking duration in days
-  const duration = Math.ceil((endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000));
-  
-  // Ensure the booking is visible in the current view
-  if (startDiff >= totalDays || startDiff + duration <= 0) {
-    return null;
-  }
-  
-  // Adjust start and width if the booking extends outside the view
-  const visibleStart = Math.max(0, startDiff);
-  const visibleDuration = Math.min(totalDays - visibleStart, duration - Math.max(0, -startDiff));
-  
-  return {
-    left: `${(visibleStart / totalDays) * 100}%`,
-    width: `${(visibleDuration / totalDays) * 100}%`,
-    status: booking.status
-  };
-};
 
 const Availability = () => {
-  const { toast } = useToast();
-  const [viewStartDate, setViewStartDate] = useState(new Date());
-  const [displayDays, setDisplayDays] = useState(14); // Show 2 weeks by default
-  const [property, setProperty] = useState<string | undefined>("all");
-  const [roomType, setRoomType] = useState<string | undefined>("all");
-  const [roomStatus, setRoomStatus] = useState<string | undefined>("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [filteredRooms, setFilteredRooms] = useState<Room[]>(roomsData);
+  const [view, setView] = useState('monthly');
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [property, setProperty] = useState('all');
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   
-  const calendarDates = generateDates(viewStartDate, displayDays);
-
-  // Apply filters when any filter changes
-  useEffect(() => {
-    let result = roomsData;
-    
-    // Property filter
-    if (property && property !== "all") {
-      result = result.filter(room => room.property === property);
-    }
-    
-    // Room type filter
-    if (roomType && roomType !== "all") {
-      result = result.filter(room => room.type === roomType);
-    }
-    
-    // Room status filter
-    if (roomStatus && roomStatus !== "all") {
-      result = result.filter(room => room.status === roomStatus);
-    }
-    
-    // Search query filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(room => 
-        room.number.toLowerCase().includes(query) || 
-        room.property.toLowerCase().includes(query) ||
-        room.bookings.some(booking => booking.guestName.toLowerCase().includes(query))
-      );
-    }
-    
-    setFilteredRooms(result);
-  }, [property, roomType, roomStatus, searchQuery]);
+  // Mock data for the availability calendar
+  const bookings: Booking[] = [
+    { 
+      id: 'BK12345', 
+      guestName: 'John Smith',
+      roomNumber: '101',
+      property: 'Marina Tower',
+      checkIn: '2025-04-02',
+      checkOut: '2025-04-05',
+      status: 'checked-in',
+      totalPaid: '$450'
+    },
+    { 
+      id: 'BK12346', 
+      guestName: 'Sarah Johnson',
+      roomNumber: '204',
+      property: 'Downtown Heights',
+      checkIn: '2025-04-05',
+      checkOut: '2025-04-12',
+      status: 'confirmed',
+      totalPaid: '$1,120'
+    },
+    { 
+      id: 'BK12347', 
+      guestName: 'Michael Brown',
+      roomNumber: '303',
+      property: 'Marina Tower',
+      checkIn: '2025-04-10',
+      checkOut: '2025-04-15',
+      status: 'confirmed',
+      totalPaid: '$750'
+    },
+  ];
   
-  const moveCalendar = (direction: 'prev' | 'next') => {
-    const newDate = new Date(viewStartDate);
-    if (direction === 'prev') {
-      newDate.setDate(newDate.getDate() - displayDays);
+  // Function to navigate between months
+  const navigateMonth = (direction: 'next' | 'prev') => {
+    if (direction === 'next') {
+      setCurrentDate(addMonths(currentDate, 1));
     } else {
-      newDate.setDate(newDate.getDate() + displayDays);
+      setCurrentDate(subMonths(currentDate, 1));
     }
-    setViewStartDate(newDate);
-  };
-
-  const jumpToDate = (date: Date) => {
-    setViewStartDate(date);
-    setSelectedDate(date);
-    toast({
-      title: "Calendar updated",
-      description: `Viewing availability from ${format(date, 'MMMM d, yyyy')}`,
-    });
   };
   
-  const handleViewChange = (days: number) => {
-    setDisplayDays(days);
-    toast({
-      description: `Now displaying ${days} days in the calendar view`,
-    });
-  };
-  
-  const formatDateHeader = (date: Date) => {
-    const day = date.getDate();
-    const isToday = new Date().toDateString() === date.toDateString();
-    const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
-    const month = date.toLocaleDateString('en-US', { month: 'short' });
+  // Generate days for the current month
+  const getDaysInMonth = () => {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
     
-    return (
-      <div className={cn(
-        "text-center p-1", 
-        isToday ? "bg-primary/10 rounded-md" : "",
-        date.getDay() === 0 || date.getDay() === 6 ? "bg-red-50" : ""
-      )}>
-        <div className="text-xs text-muted-foreground">{dayName}</div>
-        <div className={cn("text-sm font-semibold", isToday ? "text-primary" : "")}>
-          {day}
-        </div>
-        {day === 1 || date.getDate() === viewStartDate.getDate() ? (
-          <div className="text-xs text-muted-foreground">{month}</div>
-        ) : null}
-      </div>
+    return Array.from({ length: daysInMonth }, (_, i) => {
+      const date = new Date(year, month, i + 1);
+      return {
+        date,
+        day: i + 1,
+        dayOfWeek: format(date, 'EEE')
+      };
+    });
+  };
+  
+  // Generate rooms for display
+  const getRooms = () => {
+    // In a real app, this would be fetched from an API
+    const rooms = [
+      { id: '101', name: 'Room 101', property: 'Marina Tower' },
+      { id: '102', name: 'Room 102', property: 'Marina Tower' },
+      { id: '201', name: 'Room 201', property: 'Marina Tower' },
+      { id: '202', name: 'Room 202', property: 'Marina Tower' },
+      { id: '203', name: 'Room 203', property: 'Downtown Heights' },
+      { id: '204', name: 'Room 204', property: 'Downtown Heights' },
+      { id: '301', name: 'Room 301', property: 'Downtown Heights' },
+      { id: '302', name: 'Room 302', property: 'Downtown Heights' },
+      { id: '303', name: 'Room 303', property: 'Marina Tower' },
+    ];
+    
+    if (property !== 'all') {
+      return rooms.filter(room => room.property === property);
+    }
+    
+    return rooms;
+  };
+  
+  // Check if a room is booked on a specific date
+  const getBookingForRoomOnDate = (roomId: string, date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    return bookings.find(booking => 
+      booking.roomNumber === roomId && 
+      dateStr >= booking.checkIn && 
+      dateStr <= booking.checkOut
     );
   };
-
-  const handleCellClick = (roomId: string, date: Date) => {
-    // In a real app, this would open a booking creation form
-    toast({
-      title: "Create Booking",
-      description: `Room ${filteredRooms.find(r => r.id === roomId)?.number} selected for ${format(date, 'MMMM d, yyyy')}`,
-    });
+  
+  // Handle hover event on booking cell
+  const handleBookingHover = (booking: Booking | null) => {
+    setSelectedBooking(booking);
   };
   
-  const handleBookingClick = (bookingId: string) => {
-    // In a real app, this would navigate to booking details
-    toast({
-      title: "Booking Details",
-      description: `Viewing details for booking #${bookingId}`,
-    });
-  };
-
+  const days = getDaysInMonth();
+  const rooms = getRooms();
+  
   return (
     <div className="animate-fade-in">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
@@ -291,351 +148,222 @@ const Availability = () => {
           <h1 className="text-3xl font-bold">Availability Calendar</h1>
           <p className="text-muted-foreground mt-1">View and manage room availability</p>
         </div>
-        <Button asChild className="flex items-center gap-2">
-          <Link to="/bookings/new">
-            <PlusCircle className="h-4 w-4" />
-            Add New Booking
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" className="flex items-center gap-2">
+            <Printer className="h-4 w-4" />
+            Print
+          </Button>
+          <Button variant="outline" className="flex items-center gap-2">
+            <DownloadCloud className="h-4 w-4" />
+            Export
+          </Button>
+        </div>
       </div>
       
-      <Card className="mb-8">
+      <Card className="mb-6">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle>Room Availability</CardTitle>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  onClick={() => moveCalendar('prev')}
-                  className="h-8 w-8"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="h-8">
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {format(viewStartDate, 'MMM d, yyyy')}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="center">
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={(date) => date && jumpToDate(date)}
-                      initialFocus
-                      className="pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  onClick={() => moveCalendar('next')}
-                  className="h-8 w-8"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-              <Select value={displayDays.toString()} onValueChange={(value) => handleViewChange(parseInt(value))}>
-                <SelectTrigger className="w-[130px] h-8">
-                  <SelectValue placeholder="View" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="7">7 Days</SelectItem>
-                  <SelectItem value="14">14 Days</SelectItem>
-                  <SelectItem value="30">30 Days</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex items-center gap-2">
               <Button 
-                variant="ghost" 
+                variant="outline" 
                 size="icon" 
-                onClick={() => setViewStartDate(new Date())}
-                className="h-8 w-8"
-                title="Jump to today"
+                onClick={() => navigateMonth('prev')}
               >
-                <RefreshCw className="h-4 w-4" />
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <h2 className="text-xl font-semibold">
+                {format(currentDate, 'MMMM yyyy')}
+              </h2>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={() => navigateMonth('next')}
+              >
+                <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
-          </div>
-          <CardDescription>
-            View and manage room availability. Click on empty cells to create new bookings.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
-            <div className="relative">
-              <Input
-                placeholder="Search rooms or guests..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-8"
-              />
-              <Filter className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <div className="flex items-center gap-3">
+              <Select value={property} onValueChange={setProperty}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select property" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Properties</SelectItem>
+                  <SelectItem value="Marina Tower">Marina Tower</SelectItem>
+                  <SelectItem value="Downtown Heights">Downtown Heights</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button variant="ghost" size="sm">
+                <FilterX className="h-4 w-4 mr-1" />
+                Clear Filters
+              </Button>
+              <Tabs defaultValue="monthly">
+                <TabsList>
+                  <TabsTrigger 
+                    value="monthly" 
+                    onClick={() => setView('monthly')}
+                  >
+                    <Calendar className="h-4 w-4 mr-1" />
+                    Monthly
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="list" 
+                    onClick={() => setView('list')}
+                  >
+                    <List className="h-4 w-4 mr-1" />
+                    List
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
             </div>
-            
-            <Select value={property} onValueChange={setProperty}>
-              <SelectTrigger>
-                <SelectValue placeholder="Property Filter" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Properties</SelectItem>
-                <SelectItem value="Marina Tower">Marina Tower</SelectItem>
-                <SelectItem value="Downtown Heights">Downtown Heights</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={roomType} onValueChange={setRoomType}>
-              <SelectTrigger>
-                <SelectValue placeholder="Room Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="Standard Room">Standard Room</SelectItem>
-                <SelectItem value="Deluxe Suite">Deluxe Suite</SelectItem>
-                <SelectItem value="Executive Suite">Executive Suite</SelectItem>
-                <SelectItem value="Penthouse Suite">Penthouse Suite</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={roomStatus} onValueChange={setRoomStatus}>
-              <SelectTrigger>
-                <SelectValue placeholder="Room Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="available">Available</SelectItem>
-                <SelectItem value="occupied">Occupied</SelectItem>
-                <SelectItem value="maintenance">Maintenance</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
-          
-          <div className="border rounded-md overflow-hidden mb-4">
-            <div className="overflow-x-auto">
-              <div style={{ 
-                minWidth: `${Math.max(displayDays * 80, 1000)}px`, 
-                width: '100%' 
-              }}>
-                <div className="grid grid-cols-[200px_1fr] border-b border-border">
-                  <div className="p-3 font-medium text-sm bg-muted border-r border-border sticky left-0 z-10">Room</div>
-                  <div className={`grid grid-cols-${displayDays} bg-muted`} style={{ gridTemplateColumns: `repeat(${displayDays}, 1fr)` }}>
-                    {calendarDates.map((date, i) => (
-                      <div key={i} className="p-2 text-center border-r border-border last:border-r-0">
-                        {formatDateHeader(date)}
-                      </div>
-                    ))}
+        </CardHeader>
+        
+        <CardContent>
+          <div className="overflow-auto">
+            <TooltipProvider>
+              <div className="w-full min-w-[900px]">
+                <div className="grid grid-cols-[200px_repeat(auto-fill,minmax(40px,1fr))]">
+                  {/* Header */}
+                  <div className="h-12 border-b sticky top-0 bg-background z-10">
+                    <div className="px-3 h-full flex items-center font-semibold">Room</div>
                   </div>
-                </div>
-                
-                {filteredRooms.length === 0 ? (
-                  <div className="p-8 text-center">
-                    <p className="text-muted-foreground">No rooms match your filter criteria</p>
-                    <Button 
-                      variant="outline" 
-                      className="mt-4"
-                      onClick={() => {
-                        setProperty("all");
-                        setRoomType("all");
-                        setRoomStatus("all");
-                        setSearchQuery("");
-                      }}
+                  {days.map(day => (
+                    <div 
+                      key={day.day} 
+                      className={`h-12 border-b border-l sticky top-0 bg-background z-10 
+                      ${day.dayOfWeek === 'Sat' || day.dayOfWeek === 'Sun' ? 'bg-slate-50' : ''}`}
                     >
-                      Clear All Filters
-                    </Button>
-                  </div>
-                ) : (
-                  filteredRooms.map((room) => (
-                    <div key={room.id} className="grid grid-cols-[200px_1fr] border-b border-border last:border-b-0">
-                      <div className="p-4 border-r border-border flex flex-col sticky left-0 bg-white z-10">
-                        <Link to={`/rooms/view/${room.id}`} className="font-medium hover:text-primary">
-                          Room {room.number}
-                        </Link>
-                        <span className="text-sm text-muted-foreground flex items-center justify-between">
-                          {room.property}
-                          <span className={cn(
-                            "inline-flex items-center ml-2 rounded-full px-2 py-0.5 text-xs",
-                            room.status === 'available' && "bg-green-100 text-green-800",
-                            room.status === 'occupied' && "bg-blue-100 text-blue-800",
-                            room.status === 'maintenance' && "bg-yellow-100 text-yellow-800"
-                          )}>
-                            {room.status}
-                          </span>
-                        </span>
-                      </div>
-                      <div className="relative h-[80px]">
-                        {/* Grid cells for days */}
-                        <div className="grid h-full" style={{ gridTemplateColumns: `repeat(${displayDays}, 1fr)` }}>
-                          {Array.from({ length: displayDays }).map((_, i) => {
-                            const cellDate = new Date(viewStartDate);
-                            cellDate.setDate(cellDate.getDate() + i);
-                            return (
-                              <div 
-                                key={i} 
-                                className={cn(
-                                  "border-r border-border last:border-r-0 hover:bg-muted/50 cursor-pointer",
-                                  cellDate.getDay() === 0 || cellDate.getDay() === 6 ? "bg-red-50/50" : "",
-                                  new Date().toDateString() === cellDate.toDateString() ? "bg-primary/5" : ""
-                                )}
-                                onClick={() => handleCellClick(room.id, cellDate)}
-                              ></div>
-                            );
-                          })}
-                        </div>
-                        
-                        {/* Bookings */}
-                        {room.bookings.map((booking) => {
-                          const style = calculateBookingStyle(booking, viewStartDate, displayDays);
-                          if (!style) return null;
-                          
-                          return (
-                            <div 
-                              key={booking.id}
-                              className={cn(
-                                "absolute top-[16px] h-[48px] rounded-md cursor-pointer transition-shadow hover:shadow-md flex items-center px-2",
-                                booking.status === 'confirmed' && "bg-blue-100 border border-blue-300",
-                                booking.status === 'checked-in' && "bg-green-100 border border-green-300",
-                                booking.status === 'checked-out' && "bg-gray-100 border border-gray-300",
-                                booking.status === 'cancelled' && "bg-red-100 border border-red-300"
-                              )}
-                              style={{ left: style.left, width: style.width }}
-                              onClick={() => handleBookingClick(booking.id)}
-                            >
-                              <div className="truncate text-xs font-medium">
-                                {booking.guestName}
-                              </div>
-                            </div>
-                          );
-                        })}
+                      <div className="text-center flex flex-col justify-center h-full">
+                        <div className="text-xs text-muted-foreground">{day.dayOfWeek}</div>
+                        <div className="font-medium">{day.day}</div>
                       </div>
                     </div>
-                  ))
-                )}
+                  ))}
+                  
+                  {/* Rooms and availability */}
+                  {rooms.map(room => (
+                    <React.Fragment key={room.id}>
+                      <div className="border-b px-3 py-2 h-16 flex items-center">
+                        <div>
+                          <div className="font-medium">{room.name}</div>
+                          <div className="text-xs text-muted-foreground">{room.property}</div>
+                        </div>
+                      </div>
+                      
+                      {days.map(day => {
+                        const booking = getBookingForRoomOnDate(room.id, day.date);
+                        const isBooked = booking !== undefined;
+                        const isCheckIn = booking && format(day.date, 'yyyy-MM-dd') === booking.checkIn;
+                        const isCheckOut = booking && format(day.date, 'yyyy-MM-dd') === booking.checkOut;
+                        
+                        return (
+                          <div 
+                            key={`${room.id}-${day.day}`} 
+                            className={`
+                              border-b border-l h-16 relative
+                              ${day.dayOfWeek === 'Sat' || day.dayOfWeek === 'Sun' ? 'bg-slate-50' : ''}
+                            `}
+                            onMouseEnter={() => handleBookingHover(booking || null)}
+                            onMouseLeave={() => handleBookingHover(null)}
+                          >
+                            {isBooked && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div 
+                                    className={`
+                                      absolute inset-1 rounded px-2 flex items-center justify-center text-xs font-medium
+                                      ${isCheckIn ? 'rounded-l' : 'border-l-0'}
+                                      ${isCheckOut ? 'rounded-r' : 'border-r-0'}
+                                      ${booking?.status === 'confirmed' ? 'bg-blue-100 text-blue-800' : ''}
+                                      ${booking?.status === 'checked-in' ? 'bg-green-100 text-green-800' : ''}
+                                      ${booking?.status === 'checked-out' ? 'bg-gray-100 text-gray-800' : ''}
+                                      ${booking?.status === 'cancelled' ? 'bg-red-100 text-red-800' : ''}
+                                    `}
+                                  >
+                                    {isCheckIn && <div className="absolute left-0 top-0 bottom-0 w-1 bg-yellow-500 rounded-l"></div>}
+                                    {isCheckOut && <div className="absolute right-0 top-0 bottom-0 w-1 bg-green-500 rounded-r"></div>}
+                                    {booking?.guestName?.split(' ')[0]}
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="w-64 p-0">
+                                  <div className="p-3">
+                                    <div className="font-semibold">{booking?.guestName}</div>
+                                    <div className="text-sm">
+                                      {booking?.checkIn} to {booking?.checkOut}
+                                    </div>
+                                    <div className="flex justify-between mt-2 text-sm">
+                                      <span>Booking ID:</span>
+                                      <span className="font-mono">{booking?.id}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                      <span>Status:</span>
+                                      <span className="capitalize">{booking?.status}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                      <span>Amount:</span>
+                                      <span>{booking?.totalPaid}</span>
+                                    </div>
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </React.Fragment>
+                  ))}
+                </div>
               </div>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <div className="text-sm font-medium">Legend:</div>
-            <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full bg-blue-500"></div>
-              <span className="text-sm">Confirmed</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full bg-green-500"></div>
-              <span className="text-sm">Checked In</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full bg-gray-400"></div>
-              <span className="text-sm">Checked Out</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-3 w-3 rounded-full bg-red-500"></div>
-              <span className="text-sm">Cancelled</span>
-            </div>
+            </TooltipProvider>
           </div>
         </CardContent>
       </Card>
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Upcoming Changes</CardTitle>
-          <CardDescription>Check-ins and check-outs in the next 7 days</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium flex items-center gap-2">
-                <CalendarClock className="h-5 w-5 text-blue-500" />
-                Upcoming Check-ins
-              </h3>
-              <div className="space-y-2">
-                {filteredRooms.flatMap(room => 
-                  room.bookings
-                    .filter(b => 
-                      b.status === 'confirmed' && 
-                      b.startDate >= new Date() && 
-                      b.startDate <= new Date(new Date().setDate(new Date().getDate() + 7))
-                    )
-                    .map(booking => (
-                      <div key={booking.id} className="flex justify-between items-center p-3 border rounded-md hover:bg-muted/50">
-                        <div>
-                          <p className="font-medium">{booking.guestName}</p>
-                          <p className="text-sm text-muted-foreground">
-                            Room {room.number}, {room.property}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-medium">{format(booking.startDate, 'MMM d, yyyy')}</p>
-                          <Button size="sm" variant="outline" asChild className="mt-1">
-                            <Link to={`/bookings/${booking.id}`}>
-                              Details
-                            </Link>
-                          </Button>
-                        </div>
-                      </div>
-                    ))
-                )}
-                {!filteredRooms.some(room => 
-                  room.bookings.some(b => 
-                    b.status === 'confirmed' && 
-                    b.startDate >= new Date() && 
-                    b.startDate <= new Date(new Date().setDate(new Date().getDate() + 7))
-                  )
-                ) && (
-                  <p className="text-muted-foreground text-center py-4">No upcoming check-ins</p>
-                )}
+      {selectedBooking && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Info className="h-5 w-5" />
+              Selected Booking Details
+            </CardTitle>
+            <CardDescription>Currently viewing details for booking {selectedBooking.id}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="space-y-1">
+                <div className="text-sm text-muted-foreground">Guest</div>
+                <div className="font-medium">{selectedBooking.guestName}</div>
+              </div>
+              <div className="space-y-1">
+                <div className="text-sm text-muted-foreground">Room</div>
+                <div className="font-medium">{selectedBooking.roomNumber} ({selectedBooking.property})</div>
+              </div>
+              <div className="space-y-1">
+                <div className="text-sm text-muted-foreground">Dates</div>
+                <div className="font-medium">{selectedBooking.checkIn} to {selectedBooking.checkOut}</div>
+              </div>
+              <div className="space-y-1">
+                <div className="text-sm text-muted-foreground">Status</div>
+                <div className="font-medium capitalize">{selectedBooking.status}</div>
+              </div>
+              <div className="space-y-1">
+                <div className="text-sm text-muted-foreground">Amount Paid</div>
+                <div className="font-medium">{selectedBooking.totalPaid}</div>
+              </div>
+              <div className="space-y-1">
+                <div className="text-sm text-muted-foreground">Actions</div>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" asChild>
+                    <a href={`/bookings/${selectedBooking.id}`}>View Details</a>
+                  </Button>
+                  <Button size="sm" variant="outline">Check In</Button>
+                </div>
               </div>
             </div>
-            
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium flex items-center gap-2">
-                <CalendarClock className="h-5 w-5 text-green-500" />
-                Upcoming Check-outs
-              </h3>
-              <div className="space-y-2">
-                {filteredRooms.flatMap(room => 
-                  room.bookings
-                    .filter(b => 
-                      b.status === 'checked-in' && 
-                      b.endDate >= new Date() && 
-                      b.endDate <= new Date(new Date().setDate(new Date().getDate() + 7))
-                    )
-                    .map(booking => (
-                      <div key={booking.id} className="flex justify-between items-center p-3 border rounded-md hover:bg-muted/50">
-                        <div>
-                          <p className="font-medium">{booking.guestName}</p>
-                          <p className="text-sm text-muted-foreground">
-                            Room {room.number}, {room.property}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-medium">{format(booking.endDate, 'MMM d, yyyy')}</p>
-                          <Button size="sm" variant="outline" asChild className="mt-1">
-                            <Link to={`/bookings/${booking.id}`}>
-                              Details
-                            </Link>
-                          </Button>
-                        </div>
-                      </div>
-                    ))
-                )}
-                {!filteredRooms.some(room => 
-                  room.bookings.some(b => 
-                    b.status === 'checked-in' && 
-                    b.endDate >= new Date() && 
-                    b.endDate <= new Date(new Date().setDate(new Date().getDate() + 7))
-                  )
-                ) && (
-                  <p className="text-muted-foreground text-center py-4">No upcoming check-outs</p>
-                )}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
