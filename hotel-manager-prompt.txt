@@ -1,0 +1,313 @@
+
+# Hotel Manager - Complete Application Prompt
+
+## Overview
+Create a comprehensive hotel property management system with a modern, clean UI using React, TypeScript, Tailwind CSS, and shadcn/UI components. The application will help hotel managers handle bookings, room management, expense tracking, cleaning tasks, and more.
+
+## Overall Design & Style
+- **Color Scheme**: Primary color is blue (#3B82F6) with white backgrounds, gray borders, and dark text for contrast.
+- **Typography**: Use the Inter font family for clean, modern text.
+- **Layout**: Clean, responsive design with a sidebar navigation on the left and main content on the right.
+- **Animations**: Subtle fade-in and slide animations when navigating between pages.
+- **UI Elements**: Use shadcn/UI components like Cards, Buttons, Inputs, and Tables for a consistent design system.
+- **Responsiveness**: All pages should adapt to different screen sizes, with a collapsible sidebar on mobile.
+
+## Authentication & Access Control
+- **Login Page** with email/password fields, tabbed interface for staff and owner login.
+- User roles: Admin, Staff, and Owner with different permissions.
+
+## Primary Navigation
+Create a sidebar with these sections:
+1. **Overview**: Dashboard, Bookings, Availability
+2. **Management**: Rooms, Expenses, Cleaning Status
+3. **Administration**: Users, Owners, Reports, Audit Logs, Settings
+
+The sidebar should:
+- Be collapsible with a toggle button
+- Show icons and text when expanded, only icons when collapsed
+- Highlight the active page
+- Include a logout button at the bottom
+
+## Pages Specification
+
+### 1. Dashboard
+Create a dashboard with multiple card components displaying:
+- **Today's Check-ins**: List of guests checking in today with their details and room numbers
+- **Today's Check-outs**: List of guests checking out today
+- **Occupancy Rate**: A percentage displayed as a circular progress chart
+- **Revenue Overview**: A bar chart showing daily/weekly/monthly revenue
+- **Recent Bookings**: Table of recent bookings with status indicators
+- **Room Status Overview**: Pie chart showing available, occupied, and maintenance rooms
+- Quick action buttons for common tasks (Add Booking, Add Room, etc.)
+
+### 2. Bookings Page
+- **Filtering Section**: Allow filtering by date range, status, property, and guest name
+- **Toggle View**: List/Grid view options for bookings
+- **Booking List**: Each booking should display:
+  * Guest name
+  * Room number and type
+  * Check-in/out dates
+  * Status (confirmed, checked-in, checked-out, cancelled)
+  * Payment status
+  * Action buttons (view, edit, check-in, check-out)
+- **Add New Booking** button in the top right
+- Pagination for the booking list
+
+### 3. Booking Details Page
+- **Header**: Booking reference number, status badge, creation date
+- **Action Buttons**: Edit, Cancel, Check-in/Check-out
+- **Multiple Tabs**:
+  * **Guest Info**: Name, email, phone, number of guests
+  * **Booking Details**: Check-in/out dates, room details, special requests
+  * **Payment**: Payment status, amount, payment method
+  * **Activity Log**: Timeline of booking-related actions
+- **Notes Section**: For staff to add notes about the booking
+
+### 4. Booking Add/Edit Form
+- Form with following sections:
+  * Guest information (name, email, phone)
+  * Room selection (property, room type, room number)
+  * Stay details (check-in/out dates, number of guests)
+  * Rate information (base rate, total amount)
+  * Payment details (status, method)
+  * Special requests/notes
+- **Submit Button**: "Create Booking" or "Update Booking"
+- **Cancel Button**: Return to the bookings list
+
+### 5. Rooms Page
+- **Filtering Section**: Filter by property, room type, status, floor
+- **Room Cards**: Visual representation of each room with:
+  * Room number and type
+  * Current status with color coding (available: green, occupied: blue, maintenance: orange)
+  * Amenities icons
+  * Rate information
+  * Action buttons (view, edit, mark maintenance)
+- **Add New Room** button in the top right
+- Alternative list view with more detailed information
+
+### 6. Room Details Page
+- **Header**: Room number, type, status badge
+- **Photos**: Room images in a carousel
+- **Details**: Floor, capacity, amenities, description
+- **Rate Information**: Current rate, historical rates
+- **Booking History**: Past and upcoming bookings for this room
+- **Maintenance Records**: Past maintenance issues and resolutions
+
+### 7. Room Add/Edit Form
+- Form with following fields:
+  * Room number
+  * Room type (dropdown)
+  * Floor
+  * Capacity
+  * Base rate
+  * Amenities (multi-select)
+  * Description
+  * Status
+  * Photos upload section
+
+### 8. Availability Calendar
+- **Monthly Calendar View**: Visual representation of room availability
+- Color-coded cells representing:
+  * Available dates (green)
+  * Booked dates (blue)
+  * Maintenance (orange)
+- **Filtering Options**: By room type, floor, property
+- **Room List**: On the left side, showing room numbers
+- **Date Navigation**: Previous/next month buttons, "Jump to Date" option
+
+### 9. Expenses Page
+- **Filtering Section**: Date range, category, payment method
+- **Expense List**: Table with columns for:
+  * Date
+  * Description
+  * Category
+  * Amount
+  * Payment method
+  * Status
+  * Actions (view, edit, delete)
+- **Summary Cards**: Total expenses, categorized expenses
+- **Add New Expense** button
+- **Export** button for generating reports
+
+### 10. Expense Add/Edit Form
+- Form with fields for:
+  * Date
+  * Amount
+  * Category (dropdown)
+  * Description
+  * Payment method
+  * Receipt upload
+  * Additional notes
+
+### 11. Cleaning Status Page
+- **Daily View**: List of rooms requiring cleaning
+- **Filter Options**: By floor, cleaning status, assigned staff
+- **Room Cards**: Showing:
+  * Room number
+  * Cleaning status (pending, in-progress, completed)
+  * Checkout time (for rooms with departing guests)
+  * Check-in time (for rooms expecting new guests)
+  * Assigned staff member
+- **Assignment Feature**: Ability to assign staff to rooms
+- **Status Update Buttons**: Mark as in-progress, completed
+- **Notes Field**: For cleaning staff to add notes
+
+### 12. Users Page
+- **User List**: Table of staff accounts with columns for:
+  * Name
+  * Email
+  * Role
+  * Status (active/inactive)
+  * Last active
+  * Actions (view, edit, deactivate)
+- **Add New User** button
+- **Role Filter**: Filter by admin, staff, maintenance, etc.
+
+### 13. User Add/Edit Form
+- Form with fields for:
+  * Name
+  * Email
+  * Password (on create)
+  * Role selection
+  * Permissions checkboxes
+  * Status toggle
+  * Profile image upload
+
+### 14. Owners Page
+- **Owner List**: Table of property owners with columns for:
+  * Name
+  * Email
+  * Phone
+  * Number of properties
+  * Commission rate
+  * Actions (view, edit)
+- **Add New Owner** button
+- **Filter Options**: By number of properties, active status
+
+### 15. Owner Add/Edit Form
+- Form with fields for:
+  * Name
+  * Email
+  * Phone
+  * Address
+  * Payment information
+  * Commission rate
+  * Property assignment
+
+### 16. Reports Page
+- **Report Types**: Select from various report types:
+  * Occupancy Report
+  * Revenue Report
+  * Expense Report
+  * Owner Payouts Report
+- **Parameters Section**: Select date range, properties, and other parameters
+- **Preview Section**: Chart visualization of the report data
+  * Line charts for trends over time
+  * Bar charts for comparisons
+  * Pie charts for distributions
+- **Data Tables**: Detailed data in tabular format
+- **Export Options**: PDF, Excel, CSV
+
+### 17. Audit Logs Page
+- **Log List**: Table showing:
+  * Timestamp
+  * User
+  * Action
+  * Type (authentication, booking, user, system, settings)
+  * IP Address
+  * Details
+- **Filter Options**: Date range, user, action type
+- **Export Logs** button
+
+### 18. Settings Page
+- **Multiple Tabs** for different settings categories:
+  * **General**: Company name, logo, timezone, date formats
+  * **Notifications**: Email and SMS notification settings
+  * **Booking**: Default check-in/out times, cancellation policies
+  * **Payment**: Payment methods, tax rates, currency
+  * **Property**: Add/edit properties, addresses
+  * **Integrations**: Channel manager connections, payment processor setup
+  * **Backup**: Data backup and restore options
+  * **Security**: Password policies, two-factor authentication settings
+
+### 19. Profile Page
+- **Personal Information**: Name, email, role
+- **Password Change**: Fields for current and new password
+- **Notification Preferences**: Email and in-app notification toggles
+- **Activity History**: Recent actions performed by the user
+- **Theme Settings**: Light/dark mode toggle, accent color selection
+
+### 20. Channel Manager Page
+- **Connected Channels**: List of OTAs (Booking.com, Airbnb, Expedia) with status
+- **Channel Settings**: Individual settings for each connected platform
+- **Room Mappings**: Map local rooms to channel listings
+- **Rate Plans**: Manage different rate plans across channels
+- **Sync History**: Log of recent synchronization events
+
+## Functionality Details
+
+### Booking Management
+- Create, view, edit, and cancel bookings
+- Check-in and check-out processes
+- Room assignment and changes
+- Rate calculation based on stay length, room type, and promotions
+- Guest communication features (email confirmations)
+- Special requests handling
+
+### Room Management
+- Room status tracking (available, occupied, maintenance)
+- Room type configuration
+- Rate management with seasonal adjustments
+- Amenity tracking
+- Maintenance scheduling
+
+### Financial Tracking
+- Booking payment tracking
+- Expense recording and categorization
+- Owner commission calculations
+- Revenue reporting and forecasting
+
+### User System
+- Role-based access control
+- Staff activity logging
+- Password reset functionality
+- User profile management
+
+### Notifications
+- In-app notifications for important events
+- Email notifications for bookings, check-ins/outs
+- Task assignments and reminders
+
+## UI Components
+
+### Common Elements
+- **Buttons**: Primary (blue), Secondary (gray), Destructive (red), Ghost, Outline variants
+- **Inputs**: Text inputs, selects, multi-selects, date pickers, checkboxes, radio buttons
+- **Cards**: Consistent shadow, border-radius, and padding
+- **Tables**: Sortable columns, pagination, row actions
+- **Badges**: Status indicators with appropriate colors
+- **Modals**: For confirmations and quick forms
+- **Tooltips**: For additional information on hover
+- **Toast Notifications**: For success, error, and information messages
+
+### Navigation Elements
+- Collapsible sidebar with icons and labels
+- Breadcrumbs for page hierarchy
+- Action button positioning (top right for primary actions)
+
+## Responsive Design
+- Desktop: Full sidebar, multi-column layouts
+- Tablet: Collapsible sidebar, adapted layouts
+- Mobile: Hidden sidebar (toggle menu), single column layouts, optimized touch targets
+
+## Technical Requirements
+- React with TypeScript for frontend
+- Tailwind CSS for styling
+- shadcn/UI component library
+- React Query for data fetching
+- React Router for navigation
+- Form validation with proper error messages
+- Proper loading and error states for all data operations
+- Optimistic UI updates for better user experience
+
+This comprehensive hotel management system should provide all the tools needed for effective property management, from bookings and room management to financial tracking and reporting, with a clean, intuitive interface.
