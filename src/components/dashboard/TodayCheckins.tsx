@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import { useTodayCheckins } from '@/hooks/useBookings';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
+import { Booking, Room } from '@/services/supabase-types';
 
 export function TodayCheckins() {
   const { data: checkins, isLoading, error } = useTodayCheckins();
@@ -56,8 +57,8 @@ export function TodayCheckins() {
 
     return (
       <div className="divide-y">
-        {checkins.map((checkin) => {
-          const roomInfo = checkin.rooms as any;
+        {checkins.map((checkin: Booking) => {
+          const roomInfo = checkin.rooms as Room | undefined;
           return (
             <div key={checkin.id} className="flex items-center justify-between p-3">
               <div className="flex items-center">
@@ -67,7 +68,7 @@ export function TodayCheckins() {
                 <div>
                   <p className="font-medium text-sm">{checkin.guest_name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {roomInfo?.property || 'Unknown'} - Room {roomInfo?.number || 'Unknown'}
+                    {roomInfo?.type || 'Unknown'} - Room {roomInfo?.number || 'Unknown'}
                   </p>
                 </div>
               </div>

@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,6 +14,7 @@ import { Link } from 'react-router-dom';
 import { useBookings } from '@/hooks/useBookings';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { Booking, Room } from '@/services/supabase-types';
 
 function formatDate(dateString: string) {
   try {
@@ -98,8 +98,8 @@ export function BookingList({ view, onViewChange }: BookingListProps) {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {bookings && bookings.map((booking) => {
-                const room = booking.rooms as any;
+              {bookings && bookings.map((booking: Booking) => {
+                const room = booking.rooms as Room | undefined;
                 return (
                   <tr key={booking.id} className="hover:bg-muted/50 transition-colors">
                     <td className="px-6 py-4">
@@ -107,7 +107,7 @@ export function BookingList({ view, onViewChange }: BookingListProps) {
                       <div className="text-sm text-muted-foreground">{booking.booking_number}</div>
                     </td>
                     <td className="px-6 py-4">
-                      {room?.number || 'Unknown'}, {room?.property || 'Unknown'}
+                      {room?.number || 'Unknown'}, {room?.type || 'Unknown'}
                     </td>
                     <td className="px-6 py-4">{formatDate(booking.check_in)}</td>
                     <td className="px-6 py-4">{formatDate(booking.check_out)}</td>
@@ -162,8 +162,8 @@ export function BookingList({ view, onViewChange }: BookingListProps) {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {bookings && bookings.map((booking) => {
-            const room = booking.rooms as any;
+          {bookings && bookings.map((booking: Booking) => {
+            const room = booking.rooms as Room | undefined;
             return (
               <Card key={booking.id} className="overflow-hidden hover:shadow-md transition-shadow">
                 <div className="p-6">
@@ -188,7 +188,7 @@ export function BookingList({ view, onViewChange }: BookingListProps) {
                         </div>
                         <div>
                           <p className="text-xs font-medium text-muted-foreground">ROOM</p>
-                          <p className="text-sm">{room?.number || 'Unknown'}, {room?.property || 'Unknown'}</p>
+                          <p className="text-sm">{room?.number || 'Unknown'}, {room?.type || 'Unknown'}</p>
                         </div>
                       </div>
                       

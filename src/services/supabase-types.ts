@@ -1,4 +1,3 @@
-
 export type Room = {
   id: string;
   number: string;
@@ -27,6 +26,7 @@ export type Booking = {
   special_requests: string | null;
   created_at: string;
   updated_at: string;
+  rooms?: Room; // Add optional rooms property for joins
 };
 
 export type User = {
