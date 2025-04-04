@@ -5,49 +5,60 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, CalendarIcon } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
+import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 
 type ExpenseFormData = {
-  title: string;
-  amount: string;
-  date: Date | undefined;
+  description: string;
+  amount: number;
+  date: Date;
   category: string;
-  paymentMethod: string;
-  receipt: File | null;
-  notes: string;
   property: string;
+  vendor: string;
+  paymentMethod: string;
+  receiptImage?: string;
+  notes: string;
 };
 
 const ExpenseAdd = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [formData, setFormData] = useState<ExpenseFormData>({
-    title: '',
-    amount: '',
+    description: '',
+    amount: 0,
     date: new Date(),
     category: '',
-    paymentMethod: '',
-    receipt: null,
-    notes: '',
     property: '',
+    vendor: '',
+    paymentMethod: '',
+    notes: '',
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: value,
+      [name]: name === 'amount' ? parseFloat(value) || 0 : value,
     });
   };
 
-  const handleSelectChange = (name: string, value: string) => {
+  const handleSelectChange = (name: keyof ExpenseFormData, value: string) => {
     setFormData({
       ...formData,
       [name]: value,
@@ -55,17 +66,10 @@ const ExpenseAdd = () => {
   };
 
   const handleDateChange = (date: Date | undefined) => {
-    setFormData({
-      ...formData,
-      date,
-    });
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
+    if (date) {
       setFormData({
         ...formData,
-        receipt: e.target.files[0],
+        date,
       });
     }
   };
@@ -73,22 +77,12 @@ const ExpenseAdd = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate form data
-    if (!formData.title || !formData.amount || !formData.date || !formData.category) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // In a real app, this would send the data to an API
+    // In a real app, this would send the expense data to an API
     console.log('Submitting expense:', formData);
     
     toast({
       title: "Expense Added",
-      description: `${formData.title} has been added successfully.`,
+      description: `Expense "${formData.description}" has been added successfully.`,
     });
     
     navigate('/expenses');
@@ -96,162 +90,138 @@ const ExpenseAdd = () => {
 
   return (
     <div className="animate-fade-in">
-      <div className="flex items-center gap-2 mb-6">
-        <Button variant="outline" size="icon" onClick={() => navigate('/expenses')}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold">Add New Expense</h1>
-          <p className="text-muted-foreground mt-1">Record a new expense in the system</p>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">Add New Expense</h1>
+        <p className="text-muted-foreground mt-1">Track a new expense for your property</p>
       </div>
       
       <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
-              <CardDescription>Enter the expense details</CardDescription>
+              <CardTitle>Expense Details</CardTitle>
+              <CardDescription>Enter the expense information</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Expense Title*</Label>
+                <Label htmlFor="description">Description*</Label>
                 <Input
-                  id="title"
-                  name="title"
-                  value={formData.title}
+                  id="description"
+                  name="description"
+                  value={formData.description}
                   onChange={handleInputChange}
-                  placeholder="e.g., New Furniture Purchase"
+                  placeholder="Enter expense description"
                   required
                 />
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="amount">Amount*</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2">$</span>
-                  <Input
-                    id="amount"
-                    name="amount"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.amount}
-                    onChange={handleInputChange}
-                    className="pl-8"
-                    placeholder="0.00"
-                    required
-                  />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="amount">Amount*</Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2">$</span>
+                    <Input
+                      id="amount"
+                      name="amount"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={formData.amount}
+                      onChange={handleInputChange}
+                      className="pl-7"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Date*</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !formData.date && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {formData.date ? format(formData.date, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={formData.date}
+                        onSelect={handleDateChange}
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="date">Date*</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !formData.date && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.date ? format(formData.date, "PPP") : <span>Pick a date</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={formData.date}
-                      onSelect={handleDateChange}
-                      initialFocus
-                      className="pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="category">Category*</Label>
+                  <Select onValueChange={(value) => handleSelectChange('category', value)} required>
+                    <SelectTrigger id="category">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Maintenance">Maintenance</SelectItem>
+                      <SelectItem value="Utilities">Utilities</SelectItem>
+                      <SelectItem value="Supplies">Supplies</SelectItem>
+                      <SelectItem value="Personnel">Personnel</SelectItem>
+                      <SelectItem value="Taxes">Taxes</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="property">Property*</Label>
+                  <Select onValueChange={(value) => handleSelectChange('property', value)} required>
+                    <SelectTrigger id="property">
+                      <SelectValue placeholder="Select property" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Marina Tower">Marina Tower</SelectItem>
+                      <SelectItem value="Downtown Heights">Downtown Heights</SelectItem>
+                      <SelectItem value="All Properties">All Properties</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="category">Category*</Label>
-                <Select 
-                  onValueChange={(value) => handleSelectChange('category', value)}
-                  value={formData.category}
-                  required
-                >
-                  <SelectTrigger id="category">
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Maintenance">Maintenance</SelectItem>
-                    <SelectItem value="Utilities">Utilities</SelectItem>
-                    <SelectItem value="Supplies">Supplies</SelectItem>
-                    <SelectItem value="Furniture">Furniture</SelectItem>
-                    <SelectItem value="Cleaning">Cleaning</SelectItem>
-                    <SelectItem value="Staff">Staff</SelectItem>
-                    <SelectItem value="Marketing">Marketing</SelectItem>
-                    <SelectItem value="Insurance">Insurance</SelectItem>
-                    <SelectItem value="Taxes">Taxes</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Additional Details</CardTitle>
-              <CardDescription>Provide more information about the expense</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="property">Property</Label>
-                <Select 
-                  onValueChange={(value) => handleSelectChange('property', value)}
-                  value={formData.property}
-                >
-                  <SelectTrigger id="property">
-                    <SelectValue placeholder="Select property" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="All Properties">All Properties</SelectItem>
-                    <SelectItem value="Marina Tower">Marina Tower</SelectItem>
-                    <SelectItem value="Downtown Heights">Downtown Heights</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="paymentMethod">Payment Method</Label>
-                <Select 
-                  onValueChange={(value) => handleSelectChange('paymentMethod', value)}
-                  value={formData.paymentMethod}
-                >
-                  <SelectTrigger id="paymentMethod">
-                    <SelectValue placeholder="Select payment method" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Credit Card">Credit Card</SelectItem>
-                    <SelectItem value="Debit Card">Debit Card</SelectItem>
-                    <SelectItem value="Cash">Cash</SelectItem>
-                    <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
-                    <SelectItem value="Check">Check</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="receipt">Receipt (Optional)</Label>
-                <Input
-                  id="receipt"
-                  name="receipt"
-                  type="file"
-                  accept="image/*,.pdf"
-                  onChange={handleFileChange}
-                />
-                <p className="text-xs text-muted-foreground">Upload a receipt or invoice (PDF or image)</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="vendor">Vendor/Supplier</Label>
+                  <Input
+                    id="vendor"
+                    name="vendor"
+                    value={formData.vendor}
+                    onChange={handleInputChange}
+                    placeholder="Enter vendor name"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="paymentMethod">Payment Method</Label>
+                  <Select onValueChange={(value) => handleSelectChange('paymentMethod', value)}>
+                    <SelectTrigger id="paymentMethod">
+                      <SelectValue placeholder="Select payment method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Credit Card">Credit Card</SelectItem>
+                      <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                      <SelectItem value="Cash">Cash</SelectItem>
+                      <SelectItem value="Check">Check</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               
               <div className="space-y-2">
@@ -261,14 +231,44 @@ const ExpenseAdd = () => {
                   name="notes"
                   value={formData.notes}
                   onChange={handleInputChange}
-                  placeholder="Add any additional notes or details about this expense..."
-                  rows={4}
+                  placeholder="Additional notes about this expense"
+                  className="min-h-[100px]"
                 />
               </div>
             </CardContent>
           </Card>
           
-          <div className="md:col-span-2 flex justify-end gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Receipt Upload</CardTitle>
+              <CardDescription>Upload a receipt image (optional)</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="border-2 border-dashed rounded-md p-6 flex flex-col items-center justify-center">
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Drag and drop your receipt image here, or click to browse
+                  </p>
+                </div>
+                <Button type="button" variant="outline" className="mt-4">
+                  Upload Receipt
+                </Button>
+              </div>
+              
+              <div className="mt-6 space-y-4">
+                <div className="p-4 bg-blue-50 rounded-md">
+                  <h4 className="font-medium text-blue-800 mb-2">Expense Tips</h4>
+                  <ul className="text-sm text-blue-700 space-y-1">
+                    <li>• Keep all receipts for tax purposes</li>
+                    <li>• Categorize expenses accurately</li>
+                    <li>• Add detailed notes for future reference</li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <div className="lg:col-span-3 flex justify-end gap-4">
             <Button type="button" variant="outline" onClick={() => navigate('/expenses')}>
               Cancel
             </Button>

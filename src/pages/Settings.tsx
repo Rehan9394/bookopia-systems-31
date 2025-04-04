@@ -1,14 +1,16 @@
 
 import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
-import { Link } from 'react-router-dom';  // Add the missing import
+import { Badge } from '@/components/ui/badge';
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from '@/components/ui/tabs';
 import {
   Select,
   SelectContent,
@@ -16,638 +18,267 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-import { 
-  Save, 
-  Building, 
-  CreditCard, 
-  Bell, 
-  Lock, 
-  Users, 
-  Mail, 
+  AlertCircle,
+  ArrowRight,
+  BadgePercent,
+  Building2,
+  Cloud,
+  CreditCard,
   Globe,
-  DollarSign,
-  Percent
+  Lock,
+  Mail,
+  Save,
+  User,
+  Users
 } from 'lucide-react';
-
-// Form schema for General Settings
-const generalFormSchema = z.object({
-  companyName: z.string().min(2, {
-    message: "Company name must be at least 2 characters.",
-  }),
-  address: z.string(),
-  email: z.string().email({
-    message: "Please enter a valid email address.",
-  }),
-  phone: z.string(),
-  website: z.string().url({
-    message: "Please enter a valid URL.",
-  }).optional().or(z.literal('')),
-  timeZone: z.string(),
-  dateFormat: z.string(),
-  currencySymbol: z.string().min(1, {
-    message: "Currency symbol is required.",
-  }),
-});
-
-// Form schema for Tax Settings
-const taxFormSchema = z.object({
-  vatRate: z.string(),
-  cityTax: z.string(),
-  tourismFee: z.string(),
-  autoCalculate: z.boolean(),
-});
-
-// Form schema for Booking Settings
-const bookingFormSchema = z.object({
-  checkInTime: z.string(),
-  checkOutTime: z.string(),
-  minAdvanceBooking: z.string(),
-  maxAdvanceBooking: z.string(),
-  defaultCancellationPolicy: z.string(),
-});
 
 const Settings = () => {
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState('general');
+  
+  // Form states
+  const [companyName, setCompanyName] = useState('HotelManager Co.');
+  const [companyEmail, setCompanyEmail] = useState('info@hotelmanager.com');
+  const [dateFormat, setDateFormat] = useState('MM/DD/YYYY');
+  const [currencyFormat, setCurrencyFormat] = useState('USD');
   const [emailNotifications, setEmailNotifications] = useState(true);
-  const [smsNotifications, setSmsNotifications] = useState(false);
-  const [autoBackup, setAutoBackup] = useState(true);
-  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [autoCheckout, setAutoCheckout] = useState(true);
   
-  // General Settings Form
-  const generalForm = useForm<z.infer<typeof generalFormSchema>>({
-    resolver: zodResolver(generalFormSchema),
-    defaultValues: {
-      companyName: "DVR Group",
-      address: "123 Main Street, New York, NY 10001",
-      email: "info@dvrgroup.com",
-      phone: "+1 234 567 890",
-      website: "https://dvrgroup.com",
-      timeZone: "UTC-5",
-      dateFormat: "MM/DD/YYYY",
-      currencySymbol: "$",
-    },
-  });
+  // More advanced settings form states
+  const [defaultCheckInTime, setDefaultCheckInTime] = useState('14:00');
+  const [defaultCheckOutTime, setDefaultCheckOutTime] = useState('11:00');
+  const [taxRate, setTaxRate] = useState('7.5');
+  const [reminderDays, setReminderDays] = useState('1');
   
-  // Tax Settings Form
-  const taxForm = useForm<z.infer<typeof taxFormSchema>>({
-    resolver: zodResolver(taxFormSchema),
-    defaultValues: {
-      vatRate: "7.5",
-      cityTax: "2",
-      tourismFee: "5",
-      autoCalculate: true,
-    },
-  });
-  
-  // Booking Settings Form
-  const bookingForm = useForm<z.infer<typeof bookingFormSchema>>({
-    resolver: zodResolver(bookingFormSchema),
-    defaultValues: {
-      checkInTime: "15:00",
-      checkOutTime: "11:00",
-      minAdvanceBooking: "1",
-      maxAdvanceBooking: "365",
-      defaultCancellationPolicy: "24h",
-    },
-  });
-  
-  // Handle form submissions
-  function onGeneralSubmit(values: z.infer<typeof generalFormSchema>) {
-    console.log(values);
+  const handleSaveGeneral = () => {
     toast({
-      title: "Settings Updated",
-      description: "General settings have been updated successfully.",
+      title: "Settings Saved",
+      description: "Your general settings have been updated successfully.",
     });
-  }
+  };
   
-  function onTaxSubmit(values: z.infer<typeof taxFormSchema>) {
-    console.log(values);
+  const handleSaveProperty = () => {
     toast({
-      title: "Settings Updated",
-      description: "Tax settings have been updated successfully.",
+      title: "Property Settings Saved",
+      description: "Your property settings have been updated successfully.",
     });
-  }
+  };
   
-  function onBookingSubmit(values: z.infer<typeof bookingFormSchema>) {
-    console.log(values);
+  const handleSaveNotifications = () => {
     toast({
-      title: "Settings Updated",
-      description: "Booking settings have been updated successfully.",
+      title: "Notification Settings Saved",
+      description: "Your notification preferences have been updated.",
     });
-  }
+  };
   
-  function saveNotificationSettings() {
+  const handleSaveUsers = () => {
     toast({
-      title: "Notifications Updated",
-      description: "Notification settings have been updated successfully.",
+      title: "User Settings Saved",
+      description: "User access settings have been updated successfully.",
     });
-  }
+  };
   
-  function saveSecuritySettings() {
+  const handleSaveIntegrations = () => {
+    toast({
+      title: "Integration Settings Saved",
+      description: "Your integration settings have been updated.",
+    });
+  };
+  
+  const handleSaveBilling = () => {
+    toast({
+      title: "Billing Information Updated",
+      description: "Your billing details have been saved.",
+    });
+  };
+  
+  const handleSaveSecurity = () => {
     toast({
       title: "Security Settings Updated",
-      description: "Security settings have been updated successfully.",
+      description: "Your security settings have been saved.",
     });
-  }
+  };
   
   return (
     <div className="animate-fade-in">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="text-muted-foreground mt-1">Configure your application preferences</p>
+        <p className="text-muted-foreground mt-1">Manage your application preferences and configuration</p>
       </div>
       
-      <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="bg-background border">
-          <TabsTrigger value="general" className="data-[state=active]:bg-primary/5">
-            <Building className="h-4 w-4 mr-2" />
-            General
-          </TabsTrigger>
-          <TabsTrigger value="tax" className="data-[state=active]:bg-primary/5">
-            <DollarSign className="h-4 w-4 mr-2" />
-            Tax
-          </TabsTrigger>
-          <TabsTrigger value="booking" className="data-[state=active]:bg-primary/5">
-            <CreditCard className="h-4 w-4 mr-2" />
-            Booking
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="data-[state=active]:bg-primary/5">
-            <Bell className="h-4 w-4 mr-2" />
-            Notifications
-          </TabsTrigger>
-          <TabsTrigger value="security" className="data-[state=active]:bg-primary/5">
-            <Lock className="h-4 w-4 mr-2" />
-            Security
-          </TabsTrigger>
-          <TabsTrigger value="users" className="data-[state=active]:bg-primary/5">
-            <Users className="h-4 w-4 mr-2" />
-            Users
-          </TabsTrigger>
-        </TabsList>
+      <Tabs 
+        value={activeTab} 
+        onValueChange={setActiveTab} 
+        className="space-y-8"
+      >
+        <div className="bg-card border rounded-md p-1 sticky top-[72px] z-30 bg-background/95 backdrop-blur-sm">
+          <TabsList className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 h-auto w-full">
+            <TabsTrigger value="general" className="flex justify-start px-3 py-2 h-auto">
+              <div className="flex flex-col items-start">
+                <div className="flex items-center gap-2">
+                  <Globe className="h-4 w-4" />
+                  <span>General</span>
+                </div>
+                <span className="text-xs text-muted-foreground">Basic settings</span>
+              </div>
+            </TabsTrigger>
+            
+            <TabsTrigger value="property" className="flex justify-start px-3 py-2 h-auto">
+              <div className="flex flex-col items-start">
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4" />
+                  <span>Properties</span>
+                </div>
+                <span className="text-xs text-muted-foreground">Location settings</span>
+              </div>
+            </TabsTrigger>
+            
+            <TabsTrigger value="notifications" className="flex justify-start px-3 py-2 h-auto">
+              <div className="flex flex-col items-start">
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  <span>Notifications</span>
+                </div>
+                <span className="text-xs text-muted-foreground">Email, SMS</span>
+              </div>
+            </TabsTrigger>
+            
+            <TabsTrigger value="users" className="flex justify-start px-3 py-2 h-auto">
+              <div className="flex flex-col items-start">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  <span>Users</span>
+                </div>
+                <span className="text-xs text-muted-foreground">Access control</span>
+              </div>
+            </TabsTrigger>
+            
+            <TabsTrigger value="integrations" className="flex justify-start px-3 py-2 h-auto">
+              <div className="flex flex-col items-start">
+                <div className="flex items-center gap-2">
+                  <Cloud className="h-4 w-4" />
+                  <span>Integrations</span>
+                </div>
+                <span className="text-xs text-muted-foreground">APIs, services</span>
+              </div>
+            </TabsTrigger>
+            
+            <TabsTrigger value="billing" className="flex justify-start px-3 py-2 h-auto">
+              <div className="flex flex-col items-start">
+                <div className="flex items-center gap-2">
+                  <CreditCard className="h-4 w-4" />
+                  <span>Billing</span>
+                </div>
+                <span className="text-xs text-muted-foreground">Subscription</span>
+              </div>
+            </TabsTrigger>
+            
+            <TabsTrigger value="security" className="flex justify-start px-3 py-2 h-auto">
+              <div className="flex flex-col items-start">
+                <div className="flex items-center gap-2">
+                  <Lock className="h-4 w-4" />
+                  <span>Security</span>
+                </div>
+                <span className="text-xs text-muted-foreground">Authentication</span>
+              </div>
+            </TabsTrigger>
+          </TabsList>
+        </div>
         
-        {/* General Settings */}
-        <TabsContent value="general">
+        <TabsContent value="general" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>General Settings</CardTitle>
-              <CardDescription>Configure your company and application settings</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...generalForm}>
-                <form onSubmit={generalForm.handleSubmit(onGeneralSubmit)} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      control={generalForm.control}
-                      name="companyName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Company Name</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={generalForm.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Contact Email</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={generalForm.control}
-                      name="phone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Contact Phone</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={generalForm.control}
-                      name="website"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Website</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={generalForm.control}
-                      name="address"
-                      render={({ field }) => (
-                        <FormItem className="md:col-span-2">
-                          <FormLabel>Address</FormLabel>
-                          <FormControl>
-                            <Textarea {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  
-                  <div className="border-t pt-6">
-                    <h3 className="text-lg font-medium mb-4">Regional Settings</h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <FormField
-                        control={generalForm.control}
-                        name="timeZone"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Time Zone</FormLabel>
-                            <Select 
-                              onValueChange={field.onChange} 
-                              defaultValue={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select a timezone" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="UTC-12">UTC-12</SelectItem>
-                                <SelectItem value="UTC-11">UTC-11</SelectItem>
-                                <SelectItem value="UTC-10">UTC-10</SelectItem>
-                                <SelectItem value="UTC-9">UTC-9</SelectItem>
-                                <SelectItem value="UTC-8">UTC-8 (PST)</SelectItem>
-                                <SelectItem value="UTC-7">UTC-7 (MST)</SelectItem>
-                                <SelectItem value="UTC-6">UTC-6 (CST)</SelectItem>
-                                <SelectItem value="UTC-5">UTC-5 (EST)</SelectItem>
-                                <SelectItem value="UTC-4">UTC-4</SelectItem>
-                                <SelectItem value="UTC-3">UTC-3</SelectItem>
-                                <SelectItem value="UTC-2">UTC-2</SelectItem>
-                                <SelectItem value="UTC-1">UTC-1</SelectItem>
-                                <SelectItem value="UTC">UTC</SelectItem>
-                                <SelectItem value="UTC+1">UTC+1</SelectItem>
-                                <SelectItem value="UTC+2">UTC+2</SelectItem>
-                                <SelectItem value="UTC+3">UTC+3</SelectItem>
-                                <SelectItem value="UTC+4">UTC+4</SelectItem>
-                                <SelectItem value="UTC+5">UTC+5</SelectItem>
-                                <SelectItem value="UTC+6">UTC+6</SelectItem>
-                                <SelectItem value="UTC+7">UTC+7</SelectItem>
-                                <SelectItem value="UTC+8">UTC+8</SelectItem>
-                                <SelectItem value="UTC+9">UTC+9</SelectItem>
-                                <SelectItem value="UTC+10">UTC+10</SelectItem>
-                                <SelectItem value="UTC+11">UTC+11</SelectItem>
-                                <SelectItem value="UTC+12">UTC+12</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={generalForm.control}
-                        name="dateFormat"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Date Format</FormLabel>
-                            <Select 
-                              onValueChange={field.onChange} 
-                              defaultValue={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select date format" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
-                                <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
-                                <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={generalForm.control}
-                        name="currencySymbol"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Currency Symbol</FormLabel>
-                            <Select 
-                              onValueChange={field.onChange} 
-                              defaultValue={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select currency" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="$">USD ($)</SelectItem>
-                                <SelectItem value="€">EUR (€)</SelectItem>
-                                <SelectItem value="£">GBP (£)</SelectItem>
-                                <SelectItem value="¥">JPY (¥)</SelectItem>
-                                <SelectItem value="₹">INR (₹)</SelectItem>
-                                <SelectItem value="₽">RUB (₽)</SelectItem>
-                                <SelectItem value="¥">CNY (¥)</SelectItem>
-                                <SelectItem value="د.إ">AED (د.إ)</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-end">
-                    <Button type="submit" className="w-full md:w-auto">
-                      <Save className="h-4 w-4 mr-2" />
-                      Save Changes
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        {/* Tax Settings */}
-        <TabsContent value="tax">
-          <Card>
-            <CardHeader>
-              <CardTitle>Tax Settings</CardTitle>
-              <CardDescription>Configure tax rates and calculation settings</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...taxForm}>
-                <form onSubmit={taxForm.handleSubmit(onTaxSubmit)} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      control={taxForm.control}
-                      name="vatRate"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>VAT/GST Rate (%)</FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <Input {...field} type="number" min="0" step="0.1" />
-                              <Percent className="h-4 w-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-                            </div>
-                          </FormControl>
-                          <FormDescription>
-                            Standard Value Added Tax or Goods and Services Tax rate
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={taxForm.control}
-                      name="cityTax"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>City Tax (%)</FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <Input {...field} type="number" min="0" step="0.1" />
-                              <Percent className="h-4 w-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-                            </div>
-                          </FormControl>
-                          <FormDescription>
-                            Local city tax charged per booking
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={taxForm.control}
-                      name="tourismFee"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Tourism Fee (%)</FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <Input {...field} type="number" min="0" step="0.1" />
-                              <Percent className="h-4 w-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-                            </div>
-                          </FormControl>
-                          <FormDescription>
-                            Tourism development fee charged per night
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={taxForm.control}
-                      name="autoCalculate"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                          <div className="space-y-0.5">
-                            <FormLabel className="text-base">Auto-Calculate Taxes</FormLabel>
-                            <FormDescription>
-                              Automatically calculate and apply taxes to bookings
-                            </FormDescription>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  
-                  <div className="flex justify-end">
-                    <Button type="submit" className="w-full md:w-auto">
-                      <Save className="h-4 w-4 mr-2" />
-                      Save Changes
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        {/* Booking Settings */}
-        <TabsContent value="booking">
-          <Card>
-            <CardHeader>
-              <CardTitle>Booking Settings</CardTitle>
-              <CardDescription>Configure booking policies and defaults</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...bookingForm}>
-                <form onSubmit={bookingForm.handleSubmit(onBookingSubmit)} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      control={bookingForm.control}
-                      name="checkInTime"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Check-in Time</FormLabel>
-                          <FormControl>
-                            <Input type="time" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            Default check-in time for all properties
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={bookingForm.control}
-                      name="checkOutTime"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Check-out Time</FormLabel>
-                          <FormControl>
-                            <Input type="time" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            Default check-out time for all properties
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={bookingForm.control}
-                      name="minAdvanceBooking"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Minimum Advance Booking (days)</FormLabel>
-                          <FormControl>
-                            <Input type="number" min="0" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            Minimum days in advance a booking can be made
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={bookingForm.control}
-                      name="maxAdvanceBooking"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Maximum Advance Booking (days)</FormLabel>
-                          <FormControl>
-                            <Input type="number" min="1" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            Maximum days in advance a booking can be made
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={bookingForm.control}
-                      name="defaultCancellationPolicy"
-                      render={({ field }) => (
-                        <FormItem className="md:col-span-2">
-                          <FormLabel>Default Cancellation Policy</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a policy" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="flexible">Flexible (same day)</SelectItem>
-                              <SelectItem value="24h">Moderate (24 hours)</SelectItem>
-                              <SelectItem value="48h">Strict (48 hours)</SelectItem>
-                              <SelectItem value="7d">Super Strict (7 days)</SelectItem>
-                              <SelectItem value="non-refundable">Non-refundable</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormDescription>
-                            Default cancellation policy applied to new bookings
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  
-                  <div className="flex justify-end">
-                    <Button type="submit" className="w-full md:w-auto">
-                      <Save className="h-4 w-4 mr-2" />
-                      Save Changes
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        {/* Notification Settings */}
-        <TabsContent value="notifications">
-          <Card>
-            <CardHeader>
-              <CardTitle>Notification Settings</CardTitle>
-              <CardDescription>Configure how and when notifications are sent</CardDescription>
+              <CardDescription>
+                Configure the basic settings for your hotel management system
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="company-name">Company Name</Label>
+                    <Input 
+                      id="company-name" 
+                      value={companyName} 
+                      onChange={(e) => setCompanyName(e.target.value)} 
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      This will appear on all invoices and emails
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="company-email">Company Email</Label>
+                    <Input 
+                      id="company-email" 
+                      type="email" 
+                      value={companyEmail} 
+                      onChange={(e) => setCompanyEmail(e.target.value)} 
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      This email will be used for system notifications
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="date-format">Date Format</Label>
+                    <Select 
+                      value={dateFormat} 
+                      onValueChange={setDateFormat}
+                    >
+                      <SelectTrigger id="date-format">
+                        <SelectValue placeholder="Select date format" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
+                        <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
+                        <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="currency">Currency</Label>
+                    <Select 
+                      value={currencyFormat} 
+                      onValueChange={setCurrencyFormat}
+                    >
+                      <SelectTrigger id="currency">
+                        <SelectValue placeholder="Select currency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="USD">USD ($)</SelectItem>
+                        <SelectItem value="EUR">EUR (€)</SelectItem>
+                        <SelectItem value="GBP">GBP (£)</SelectItem>
+                        <SelectItem value="CAD">CAD (C$)</SelectItem>
+                        <SelectItem value="AUD">AUD (A$)</SelectItem>
+                        <SelectItem value="JPY">JPY (¥)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+              
+              <Separator />
+              
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Notification Channels</h3>
+                <h3 className="text-lg font-medium">System Behavior</h3>
                 
                 <div className="flex items-center justify-between space-x-2">
-                  <Label htmlFor="email-notifications" className="flex flex-col space-y-1">
-                    <span>Email Notifications</span>
-                    <span className="font-normal text-sm text-muted-foreground">
-                      Receive notifications via email
-                    </span>
-                  </Label>
+                  <div className="space-y-0.5">
+                    <Label htmlFor="email-notifications">Email Notifications</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Automatically send email notifications for bookings and check-ins
+                    </p>
+                  </div>
                   <Switch
                     id="email-notifications"
                     checked={emailNotifications}
@@ -656,291 +287,1057 @@ const Settings = () => {
                 </div>
                 
                 <div className="flex items-center justify-between space-x-2">
-                  <Label htmlFor="sms-notifications" className="flex flex-col space-y-1">
-                    <span>SMS Notifications</span>
-                    <span className="font-normal text-sm text-muted-foreground">
-                      Receive notifications via SMS
-                    </span>
-                  </Label>
+                  <div className="space-y-0.5">
+                    <Label htmlFor="auto-checkout">Automatic Checkout</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Automatically check out guests at the scheduled checkout time
+                    </p>
+                  </div>
                   <Switch
-                    id="sms-notifications"
-                    checked={smsNotifications}
-                    onCheckedChange={setSmsNotifications}
+                    id="auto-checkout"
+                    checked={autoCheckout}
+                    onCheckedChange={setAutoCheckout}
                   />
                 </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="default-checkin">Default Check-in Time</Label>
+                    <Input 
+                      id="default-checkin" 
+                      type="time" 
+                      value={defaultCheckInTime} 
+                      onChange={(e) => setDefaultCheckInTime(e.target.value)} 
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="default-checkout">Default Check-out Time</Label>
+                    <Input 
+                      id="default-checkout" 
+                      type="time" 
+                      value={defaultCheckOutTime} 
+                      onChange={(e) => setDefaultCheckOutTime(e.target.value)} 
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="tax-rate">Default Tax Rate (%)</Label>
+                    <Input 
+                      id="tax-rate" 
+                      type="number" 
+                      value={taxRate} 
+                      onChange={(e) => setTaxRate(e.target.value)} 
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="reminder-days">Reminder Days</Label>
+                    <Input 
+                      id="reminder-days" 
+                      type="number" 
+                      value={reminderDays} 
+                      onChange={(e) => setReminderDays(e.target.value)} 
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Days before check-in to send reminder emails
+                    </p>
+                  </div>
+                </div>
               </div>
-              
-              <div className="space-y-4 pt-6 border-t">
-                <h3 className="text-lg font-medium">Email Notifications</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-base">New Bookings</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">
-                          Send notification when a new booking is created
-                        </span>
-                        <Switch defaultChecked />
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-base">Cancelled Bookings</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">
-                          Send notification when a booking is cancelled
-                        </span>
-                        <Switch defaultChecked />
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-base">Check-in Reminders</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">
-                          Send reminder notification for upcoming check-ins
-                        </span>
-                        <Switch defaultChecked />
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-base">Check-out Reminders</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">
-                          Send reminder notification for upcoming check-outs
-                        </span>
-                        <Switch defaultChecked />
-                      </div>
-                    </CardContent>
-                  </Card>
+            </CardContent>
+            <div className="px-6 py-4 flex justify-end gap-4 border-t">
+              <Button variant="outline">Cancel</Button>
+              <Button onClick={handleSaveGeneral} className="flex items-center gap-2">
+                <Save className="h-4 w-4" />
+                Save Changes
+              </Button>
+            </div>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Data Management</CardTitle>
+              <CardDescription>
+                Configure backups and data export options
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="border rounded-md p-4">
+                  <h3 className="font-medium mb-2">Automated Backups</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    The system automatically backs up your data every day at midnight.
+                  </p>
+                  <Select defaultValue="daily">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Backup frequency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="hourly">Hourly</SelectItem>
+                      <SelectItem value="daily">Daily</SelectItem>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="border rounded-md p-4">
+                  <h3 className="font-medium mb-2">Data Export</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Export your system data in various formats.
+                  </p>
+                  <div className="flex gap-2">
+                    <Button variant="outline">Export as CSV</Button>
+                    <Button variant="outline">Export as JSON</Button>
+                  </div>
                 </div>
               </div>
               
-              <div className="flex justify-end pt-4">
-                <Button onClick={saveNotificationSettings}>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Notification Settings
-                </Button>
+              <div className="p-4 border rounded-md bg-amber-50">
+                <div className="flex gap-3">
+                  <AlertCircle className="h-5 w-5 text-amber-600" />
+                  <div>
+                    <h4 className="font-medium text-amber-800">Data Retention Policy</h4>
+                    <p className="text-sm text-amber-700 mt-1">
+                      By default, the system retains booking data for 7 years. Audit logs are kept for 2 years.
+                      You can modify these settings in the security tab.
+                    </p>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
         
-        {/* Security Settings */}
-        <TabsContent value="security">
+        <TabsContent value="property" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Security Settings</CardTitle>
-              <CardDescription>Configure security and backup options</CardDescription>
+              <CardTitle>Property Management</CardTitle>
+              <CardDescription>
+                Configure your hotel properties and locations
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Account Security</h3>
+                <h3 className="text-lg font-medium">Active Properties</h3>
                 
-                <div className="flex items-center justify-between space-x-2">
-                  <Label htmlFor="two-factor" className="flex flex-col space-y-1">
-                    <span>Two-Factor Authentication</span>
-                    <span className="font-normal text-sm text-muted-foreground">
-                      Require 2FA for all administrator accounts
-                    </span>
-                  </Label>
-                  <Switch id="two-factor" defaultChecked />
+                <div className="rounded-md border overflow-hidden">
+                  <table className="w-full">
+                    <thead className="bg-muted">
+                      <tr>
+                        <th className="text-left font-medium p-3">Name</th>
+                        <th className="text-left font-medium p-3">Address</th>
+                        <th className="text-left font-medium p-3">Rooms</th>
+                        <th className="text-right font-medium p-3">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-t">
+                        <td className="p-3 font-medium">Marina Tower</td>
+                        <td className="p-3">123 Oceanfront Dr, Miami, FL</td>
+                        <td className="p-3">12</td>
+                        <td className="p-3 text-right">
+                          <Button size="sm" variant="ghost">Edit</Button>
+                        </td>
+                      </tr>
+                      <tr className="border-t">
+                        <td className="p-3 font-medium">Downtown Heights</td>
+                        <td className="p-3">456 Urban Ave, Miami, FL</td>
+                        <td className="p-3">8</td>
+                        <td className="p-3 text-right">
+                          <Button size="sm" variant="ghost">Edit</Button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
                 
-                <div className="flex items-center justify-between space-x-2">
-                  <Label htmlFor="session-timeout" className="flex flex-col space-y-1">
-                    <span>Session Timeout</span>
-                    <span className="font-normal text-sm text-muted-foreground">
-                      Automatically log out inactive users after 30 minutes
-                    </span>
-                  </Label>
-                  <Switch id="session-timeout" defaultChecked />
-                </div>
+                <Button>Add New Property</Button>
               </div>
               
-              <div className="space-y-4 pt-6 border-t">
-                <h3 className="text-lg font-medium">System Settings</h3>
-                
-                <div className="flex items-center justify-between space-x-2">
-                  <Label htmlFor="auto-backup" className="flex flex-col space-y-1">
-                    <span>Automatic Backups</span>
-                    <span className="font-normal text-sm text-muted-foreground">
-                      Automatically back up system data daily
-                    </span>
-                  </Label>
-                  <Switch
-                    id="auto-backup"
-                    checked={autoBackup}
-                    onCheckedChange={setAutoBackup}
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between space-x-2">
-                  <Label htmlFor="maintenance-mode" className="flex flex-col space-y-1">
-                    <span>Maintenance Mode</span>
-                    <span className="font-normal text-sm text-muted-foreground">
-                      Put the system in maintenance mode
-                    </span>
-                  </Label>
-                  <Switch
-                    id="maintenance-mode"
-                    checked={maintenanceMode}
-                    onCheckedChange={setMaintenanceMode}
-                  />
-                </div>
-              </div>
+              <Separator />
               
-              <div className="space-y-4 pt-6 border-t">
-                <h3 className="text-lg font-medium">Password Policy</h3>
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Property Settings</h3>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="min-length">Minimum Password Length</Label>
-                    <Select defaultValue="8">
-                      <SelectTrigger id="min-length">
-                        <SelectValue placeholder="Select minimum length" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="default-property">Default Property</Label>
+                    <Select defaultValue="marina">
+                      <SelectTrigger id="default-property">
+                        <SelectValue placeholder="Select default property" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="6">6 characters</SelectItem>
-                        <SelectItem value="8">8 characters</SelectItem>
-                        <SelectItem value="10">10 characters</SelectItem>
-                        <SelectItem value="12">12 characters</SelectItem>
+                        <SelectItem value="marina">Marina Tower</SelectItem>
+                        <SelectItem value="downtown">Downtown Heights</SelectItem>
                       </SelectContent>
                     </Select>
+                    <p className="text-sm text-muted-foreground">
+                      This property will be selected by default when creating new bookings
+                    </p>
                   </div>
                   
-                  <div>
-                    <Label htmlFor="password-expiry">Password Expiry</Label>
-                    <Select defaultValue="90">
-                      <SelectTrigger id="password-expiry">
-                        <SelectValue placeholder="Select expiry period" />
+                  <div className="space-y-2">
+                    <Label htmlFor="timezone">Property Timezone</Label>
+                    <Select defaultValue="est">
+                      <SelectTrigger id="timezone">
+                        <SelectValue placeholder="Select timezone" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="30">30 days</SelectItem>
-                        <SelectItem value="60">60 days</SelectItem>
-                        <SelectItem value="90">90 days</SelectItem>
-                        <SelectItem value="never">Never</SelectItem>
+                        <SelectItem value="est">Eastern Time (ET)</SelectItem>
+                        <SelectItem value="cst">Central Time (CT)</SelectItem>
+                        <SelectItem value="mst">Mountain Time (MT)</SelectItem>
+                        <SelectItem value="pst">Pacific Time (PT)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Switch id="require-uppercase" defaultChecked />
-                    <Label htmlFor="require-uppercase">Require uppercase letters</Label>
+                  <Label htmlFor="property-notes">Property Notes</Label>
+                  <Textarea 
+                    id="property-notes" 
+                    placeholder="Enter any special instructions or notes for this property"
+                    rows={4}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="show-on-booking">Show on Booking Sites</Label>
+                    <Switch id="show-on-booking" defaultChecked />
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch id="require-numbers" defaultChecked />
-                    <Label htmlFor="require-numbers">Require numbers</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Switch id="require-special" defaultChecked />
-                    <Label htmlFor="require-special">Require special characters</Label>
-                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Enable this to make your properties visible on connected booking platforms
+                  </p>
                 </div>
               </div>
+            </CardContent>
+            <div className="px-6 py-4 flex justify-end gap-4 border-t">
+              <Button variant="outline">Cancel</Button>
+              <Button onClick={handleSaveProperty} className="flex items-center gap-2">
+                <Save className="h-4 w-4" />
+                Save Property Settings
+              </Button>
+            </div>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Room Types & Pricing</CardTitle>
+              <CardDescription>
+                Manage room categories and rate plans
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="rounded-md border overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-muted">
+                    <tr>
+                      <th className="text-left font-medium p-3">Room Type</th>
+                      <th className="text-left font-medium p-3">Base Rate</th>
+                      <th className="text-left font-medium p-3">Max Occupancy</th>
+                      <th className="text-right font-medium p-3">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-t">
+                      <td className="p-3 font-medium">Standard Room</td>
+                      <td className="p-3">$120</td>
+                      <td className="p-3">2</td>
+                      <td className="p-3 text-right">
+                        <Button size="sm" variant="ghost">Edit</Button>
+                      </td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="p-3 font-medium">Deluxe Suite</td>
+                      <td className="p-3">$180</td>
+                      <td className="p-3">3</td>
+                      <td className="p-3 text-right">
+                        <Button size="sm" variant="ghost">Edit</Button>
+                      </td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="p-3 font-medium">Executive Suite</td>
+                      <td className="p-3">$250</td>
+                      <td className="p-3">4</td>
+                      <td className="p-3 text-right">
+                        <Button size="sm" variant="ghost">Edit</Button>
+                      </td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="p-3 font-medium">Penthouse Suite</td>
+                      <td className="p-3">$400</td>
+                      <td className="p-3">4</td>
+                      <td className="p-3 text-right">
+                        <Button size="sm" variant="ghost">Edit</Button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
               
-              <div className="flex justify-end pt-4">
-                <Button onClick={saveSecuritySettings}>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Security Settings
+              <div className="flex gap-3">
+                <Button>Add Room Type</Button>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <BadgePercent className="h-4 w-4" />
+                  Manage Rate Plans
                 </Button>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
         
-        {/* User Settings */}
-        <TabsContent value="users">
+        <TabsContent value="notifications" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>User Management</CardTitle>
-              <CardDescription>Configure user roles and permissions</CardDescription>
+              <CardTitle>Notification Templates</CardTitle>
+              <CardDescription>
+                Configure the email and SMS templates sent to guests
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium">User Roles</h3>
-                <Button variant="outline" size="sm">Edit Roles</Button>
+              <div className="flex flex-col md:flex-row gap-6">
+                <div className="flex-1 space-y-4">
+                  <h3 className="text-lg font-medium">Email Templates</h3>
+                  <div className="rounded-md border overflow-hidden divide-y">
+                    <div className="p-3 flex items-center justify-between hover:bg-muted/50">
+                      <div className="font-medium">Booking Confirmation</div>
+                      <Button size="sm" variant="ghost" className="flex items-center gap-1">
+                        Edit <ArrowRight className="h-3 w-3 ml-1" />
+                      </Button>
+                    </div>
+                    <div className="p-3 flex items-center justify-between hover:bg-muted/50">
+                      <div className="font-medium">Check-in Reminder</div>
+                      <Button size="sm" variant="ghost" className="flex items-center gap-1">
+                        Edit <ArrowRight className="h-3 w-3 ml-1" />
+                      </Button>
+                    </div>
+                    <div className="p-3 flex items-center justify-between hover:bg-muted/50">
+                      <div className="font-medium">Check-out Reminder</div>
+                      <Button size="sm" variant="ghost" className="flex items-center gap-1">
+                        Edit <ArrowRight className="h-3 w-3 ml-1" />
+                      </Button>
+                    </div>
+                    <div className="p-3 flex items-center justify-between hover:bg-muted/50">
+                      <div className="font-medium">Thank You</div>
+                      <Button size="sm" variant="ghost" className="flex items-center gap-1">
+                        Edit <ArrowRight className="h-3 w-3 ml-1" />
+                      </Button>
+                    </div>
+                    <div className="p-3 flex items-center justify-between hover:bg-muted/50">
+                      <div className="font-medium">Cancellation</div>
+                      <Button size="sm" variant="ghost" className="flex items-center gap-1">
+                        Edit <ArrowRight className="h-3 w-3 ml-1" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex-1 space-y-4">
+                  <h3 className="text-lg font-medium">SMS Templates</h3>
+                  <div className="rounded-md border overflow-hidden divide-y">
+                    <div className="p-3 flex items-center justify-between hover:bg-muted/50">
+                      <div className="font-medium">Booking Confirmation</div>
+                      <Button size="sm" variant="ghost" className="flex items-center gap-1">
+                        Edit <ArrowRight className="h-3 w-3 ml-1" />
+                      </Button>
+                    </div>
+                    <div className="p-3 flex items-center justify-between hover:bg-muted/50">
+                      <div className="font-medium">Check-in Reminder</div>
+                      <Button size="sm" variant="ghost" className="flex items-center gap-1">
+                        Edit <ArrowRight className="h-3 w-3 ml-1" />
+                      </Button>
+                    </div>
+                    <div className="p-3 flex items-center justify-between hover:bg-muted/50">
+                      <div className="font-medium">Check-out Reminder</div>
+                      <Button size="sm" variant="ghost" className="flex items-center gap-1">
+                        Edit <ArrowRight className="h-3 w-3 ml-1" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="mt-2">
+                    <Button variant="outline">Add SMS Template</Button>
+                  </div>
+                </div>
+              </div>
+              
+              <Separator />
+              
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Template Variables</h3>
+                <p className="text-sm text-muted-foreground">
+                  Use these variables in your templates to insert dynamic content:
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="border rounded-md p-3">
+                    <code className="text-sm font-mono">{'{{guest_name}}'}</code>
+                    <p className="text-xs text-muted-foreground mt-1">Guest's full name</p>
+                  </div>
+                  <div className="border rounded-md p-3">
+                    <code className="text-sm font-mono">{'{{booking_ref}}'}</code>
+                    <p className="text-xs text-muted-foreground mt-1">Booking reference</p>
+                  </div>
+                  <div className="border rounded-md p-3">
+                    <code className="text-sm font-mono">{'{{check_in_date}}'}</code>
+                    <p className="text-xs text-muted-foreground mt-1">Check-in date</p>
+                  </div>
+                  <div className="border rounded-md p-3">
+                    <code className="text-sm font-mono">{'{{check_out_date}}'}</code>
+                    <p className="text-xs text-muted-foreground mt-1">Check-out date</p>
+                  </div>
+                  <div className="border rounded-md p-3">
+                    <code className="text-sm font-mono">{'{{room_type}}'}</code>
+                    <p className="text-xs text-muted-foreground mt-1">Room type name</p>
+                  </div>
+                  <div className="border rounded-md p-3">
+                    <code className="text-sm font-mono">{'{{room_number}}'}</code>
+                    <p className="text-xs text-muted-foreground mt-1">Room number</p>
+                  </div>
+                </div>
               </div>
               
               <div className="space-y-4">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base">Administrator</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      Full access to all system functions and settings
-                    </p>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base">Manager</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      Can manage bookings, rooms, and reports but cannot change system settings
-                    </p>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base">Receptionist</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      Can handle check-ins, check-outs, and view room availability
-                    </p>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base">Cleaning Staff</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                      Limited access to view and update cleaning status only
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-              
-              <div className="flex justify-between items-center pt-4">
-                <h3 className="text-lg font-medium">Active Users</h3>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/users">Manage Users</Link>
-                </Button>
-              </div>
-              
-              <div className="pt-4">
-                <Button asChild>
-                  <Link to="/users/add">
-                    <Users className="h-4 w-4 mr-2" />
-                    Add New User
-                  </Link>
-                </Button>
+                <h3 className="text-lg font-medium">Email Settings</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="email-sender">Sender Email</Label>
+                    <Input id="email-sender" defaultValue="bookings@hotelmanager.com" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email-reply-to">Reply-to Email</Label>
+                    <Input id="email-reply-to" defaultValue="support@hotelmanager.com" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email-footer">Email Footer Text</Label>
+                  <Textarea 
+                    id="email-footer" 
+                    defaultValue="HotelManager Inc. | 123 Hotel St, Miami, FL | (555) 123-4567" 
+                    rows={2}
+                  />
+                </div>
               </div>
             </CardContent>
+            <div className="px-6 py-4 flex justify-end gap-4 border-t">
+              <Button variant="outline">Cancel</Button>
+              <Button onClick={handleSaveNotifications} className="flex items-center gap-2">
+                <Save className="h-4 w-4" />
+                Save Notification Settings
+              </Button>
+            </div>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Notification Events</CardTitle>
+              <CardDescription>
+                Configure when notifications are sent
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between space-x-2">
+                  <div className="space-y-0.5">
+                    <Label>Booking Confirmation</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Send an email when a booking is created or modified
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                
+                <div className="flex items-center justify-between space-x-2">
+                  <div className="space-y-0.5">
+                    <Label>Check-in Reminder</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Send a reminder before guest arrival
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                
+                <div className="flex items-center justify-between space-x-2">
+                  <div className="space-y-0.5">
+                    <Label>Check-out Reminder</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Send a reminder on the day of departure
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                
+                <div className="flex items-center justify-between space-x-2">
+                  <div className="space-y-0.5">
+                    <Label>Post-stay Thank You</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Send a thank you email after checkout
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                
+                <div className="flex items-center justify-between space-x-2">
+                  <div className="space-y-0.5">
+                    <Label>Cancellation Notice</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Send an email when a booking is cancelled
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                
+                <div className="flex items-center justify-between space-x-2">
+                  <div className="space-y-0.5">
+                    <Label>Staff Notifications</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Send email notifications to staff for new bookings and changes
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="users" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>User Management</CardTitle>
+              <CardDescription>
+                Manage user accounts and access permissions
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="rounded-md border overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-muted">
+                    <tr>
+                      <th className="text-left font-medium p-3">Name</th>
+                      <th className="text-left font-medium p-3">Email</th>
+                      <th className="text-left font-medium p-3">Role</th>
+                      <th className="text-left font-medium p-3">Status</th>
+                      <th className="text-right font-medium p-3">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-t">
+                      <td className="p-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                            <User className="h-4 w-4" />
+                          </div>
+                          <span className="font-medium">John Doe</span>
+                        </div>
+                      </td>
+                      <td className="p-3">john@example.com</td>
+                      <td className="p-3">Administrator</td>
+                      <td className="p-3">
+                        <Badge className="bg-green-100 text-green-800">Active</Badge>
+                      </td>
+                      <td className="p-3 text-right">
+                        <Button size="sm" variant="ghost">Edit</Button>
+                      </td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="p-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                            <User className="h-4 w-4" />
+                          </div>
+                          <span className="font-medium">Jane Smith</span>
+                        </div>
+                      </td>
+                      <td className="p-3">jane@example.com</td>
+                      <td className="p-3">Manager</td>
+                      <td className="p-3">
+                        <Badge className="bg-green-100 text-green-800">Active</Badge>
+                      </td>
+                      <td className="p-3 text-right">
+                        <Button size="sm" variant="ghost">Edit</Button>
+                      </td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="p-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                            <User className="h-4 w-4" />
+                          </div>
+                          <span className="font-medium">Robert Wilson</span>
+                        </div>
+                      </td>
+                      <td className="p-3">robert@example.com</td>
+                      <td className="p-3">Staff</td>
+                      <td className="p-3">
+                        <Badge className="bg-red-100 text-red-800">Inactive</Badge>
+                      </td>
+                      <td className="p-3 text-right">
+                        <Button size="sm" variant="ghost">Edit</Button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              
+              <Button>Add New User</Button>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Role Permissions</CardTitle>
+              <CardDescription>
+                Configure access levels for each user role
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Administrator</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex items-center justify-between border rounded-md p-3">
+                    <Label>Full Access</Label>
+                    <Switch checked disabled />
+                  </div>
+                </div>
+                
+                <Separator />
+                
+                <h3 className="text-lg font-medium">Manager</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex items-center justify-between border rounded-md p-3">
+                    <Label>Manage Bookings</Label>
+                    <Switch defaultChecked />
+                  </div>
+                  <div className="flex items-center justify-between border rounded-md p-3">
+                    <Label>Manage Rooms</Label>
+                    <Switch defaultChecked />
+                  </div>
+                  <div className="flex items-center justify-between border rounded-md p-3">
+                    <Label>View Reports</Label>
+                    <Switch defaultChecked />
+                  </div>
+                  <div className="flex items-center justify-between border rounded-md p-3">
+                    <Label>Manage Staff</Label>
+                    <Switch defaultChecked />
+                  </div>
+                  <div className="flex items-center justify-between border rounded-md p-3">
+                    <Label>System Settings</Label>
+                    <Switch />
+                  </div>
+                </div>
+                
+                <Separator />
+                
+                <h3 className="text-lg font-medium">Staff</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex items-center justify-between border rounded-md p-3">
+                    <Label>View Bookings</Label>
+                    <Switch defaultChecked />
+                  </div>
+                  <div className="flex items-center justify-between border rounded-md p-3">
+                    <Label>Create Bookings</Label>
+                    <Switch defaultChecked />
+                  </div>
+                  <div className="flex items-center justify-between border rounded-md p-3">
+                    <Label>Check In/Out</Label>
+                    <Switch defaultChecked />
+                  </div>
+                  <div className="flex items-center justify-between border rounded-md p-3">
+                    <Label>View Rooms</Label>
+                    <Switch defaultChecked />
+                  </div>
+                  <div className="flex items-center justify-between border rounded-md p-3">
+                    <Label>Edit Rooms</Label>
+                    <Switch />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+            <div className="px-6 py-4 flex justify-end gap-4 border-t">
+              <Button variant="outline">Cancel</Button>
+              <Button onClick={handleSaveUsers} className="flex items-center gap-2">
+                <Save className="h-4 w-4" />
+                Save User Settings
+              </Button>
+            </div>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="integrations" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Connected Services</CardTitle>
+              <CardDescription>
+                Manage integrations with external services
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="rounded-md border overflow-hidden divide-y">
+                <div className="p-4 flex justify-between items-center">
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-md bg-blue-100 flex items-center justify-center">
+                      <svg className="h-6 w-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-medium">Booking.com</h3>
+                      <p className="text-sm text-muted-foreground">Connected on May 12, 2023</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-green-100 text-green-800">Active</Badge>
+                    <Button variant="outline" size="sm">Configure</Button>
+                    <Button variant="ghost" size="sm">Disconnect</Button>
+                  </div>
+                </div>
+                
+                <div className="p-4 flex justify-between items-center">
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-md bg-red-100 flex items-center justify-center">
+                      <svg className="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-medium">Airbnb</h3>
+                      <p className="text-sm text-muted-foreground">Connected on June 3, 2023</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-green-100 text-green-800">Active</Badge>
+                    <Button variant="outline" size="sm">Configure</Button>
+                    <Button variant="ghost" size="sm">Disconnect</Button>
+                  </div>
+                </div>
+                
+                <div className="p-4 flex justify-between items-center">
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-md bg-gray-100 flex items-center justify-center">
+                      <svg className="h-6 w-6 text-gray-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                        <polyline points="22,6 12,13 2,6" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-medium">Expedia</h3>
+                      <p className="text-sm text-muted-foreground">Not connected</p>
+                    </div>
+                  </div>
+                  <div>
+                    <Button>Connect</Button>
+                  </div>
+                </div>
+              </div>
+              
+              <Button>Add New Integration</Button>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>API Access</CardTitle>
+              <CardDescription>
+                Configure API keys and access for external developers
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="rounded-md border overflow-hidden divide-y">
+                <div className="p-4 flex justify-between items-center">
+                  <div>
+                    <h3 className="font-medium">Production API Key</h3>
+                    <p className="text-sm text-muted-foreground">For live environment integration</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm">Regenerate</Button>
+                    <Button variant="outline" size="sm">Copy Key</Button>
+                  </div>
+                </div>
+                
+                <div className="p-4 flex justify-between items-center">
+                  <div>
+                    <h3 className="font-medium">Test API Key</h3>
+                    <p className="text-sm text-muted-foreground">For development and testing</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm">Regenerate</Button>
+                    <Button variant="outline" size="sm">Copy Key</Button>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">API Rate Limits</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="rate-limit">Requests per minute</Label>
+                    <Input id="rate-limit" type="number" defaultValue="60" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="daily-limit">Daily request limit</Label>
+                    <Input id="daily-limit" type="number" defaultValue="10000" />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-4 border rounded-md bg-blue-50">
+                <div className="flex gap-3">
+                  <AlertCircle className="h-5 w-5 text-blue-600" />
+                  <div>
+                    <h4 className="font-medium text-blue-800">API Documentation</h4>
+                    <p className="text-sm text-blue-700 mt-1">
+                      View our API documentation to learn more about how to integrate with our system.
+                    </p>
+                    <Button size="sm" variant="outline" className="mt-2">
+                      View Documentation
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+            <div className="px-6 py-4 flex justify-end gap-4 border-t">
+              <Button variant="outline">Cancel</Button>
+              <Button onClick={handleSaveIntegrations} className="flex items-center gap-2">
+                <Save className="h-4 w-4" />
+                Save Integration Settings
+              </Button>
+            </div>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="billing" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Subscription Plan</CardTitle>
+              <CardDescription>
+                Manage your current plan and billing cycle
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="col-span-1 md:col-span-2">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold">
+                        PRO
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold">Professional Plan</h3>
+                        <p className="text-sm text-muted-foreground">$129 per month, billed annually</p>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <svg className="h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span>Unlimited bookings</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <svg className="h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span>Up to 50 rooms</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <svg className="h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span>Premium support</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <svg className="h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span>All integrations</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground">NEXT BILLING DATE</h4>
+                    <p className="text-lg font-medium">Jan 1, 2024</p>
+                  </div>
+                  <Button className="w-full">Change Plan</Button>
+                  <Button variant="outline" className="w-full">Billing History</Button>
+                </div>
+              </div>
+              
+              <Separator />
+              
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Payment Method</h3>
+                <div className="flex items-center gap-4 p-4 border rounded-md">
+                  <div className="h-10 w-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-md flex items-center justify-center text-white font-bold">
+                    VISA
+                  </div>
+                  <div>
+                    <p className="font-medium">Visa ending in 4242</p>
+                    <p className="text-sm text-muted-foreground">Expires 12/2025</p>
+                  </div>
+                  <div className="ml-auto">
+                    <Button variant="ghost" size="sm">Edit</Button>
+                  </div>
+                </div>
+                <Button variant="outline">Add Payment Method</Button>
+              </div>
+              
+              <div className="p-4 border rounded-md bg-amber-50">
+                <div className="flex gap-3">
+                  <AlertCircle className="h-5 w-5 text-amber-600" />
+                  <div>
+                    <h4 className="font-medium text-amber-800">Need Help?</h4>
+                    <p className="text-sm text-amber-700 mt-1">
+                      Contact our billing support team for assistance with your subscription.
+                    </p>
+                    <Button size="sm" variant="outline" className="mt-2">
+                      Contact Support
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+            <div className="px-6 py-4 flex justify-end gap-4 border-t">
+              <Button variant="outline">Cancel</Button>
+              <Button onClick={handleSaveBilling} className="flex items-center gap-2">
+                <Save className="h-4 w-4" />
+                Save Billing Information
+              </Button>
+            </div>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="security" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Security Settings</CardTitle>
+              <CardDescription>
+                Manage authentication and security preferences
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Authentication</h3>
+                
+                <div className="flex items-center justify-between space-x-2">
+                  <div className="space-y-0.5">
+                    <Label>Two-Factor Authentication</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Require 2FA for all administrative accounts
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                
+                <div className="flex items-center justify-between space-x-2">
+                  <div className="space-y-0.5">
+                    <Label>Session Timeout</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Automatically log out inactive users
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="session-timeout">Session Timeout Duration (minutes)</Label>
+                    <Input id="session-timeout" type="number" defaultValue="30" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="max-attempts">Max Login Attempts</Label>
+                    <Input id="max-attempts" type="number" defaultValue="5" />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="password-policy">Password Policy</Label>
+                  <Select defaultValue="strong">
+                    <SelectTrigger id="password-policy">
+                      <SelectValue placeholder="Select password policy" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="basic">Basic (8+ characters)</SelectItem>
+                      <SelectItem value="medium">Medium (8+ chars, mixed case, numbers)</SelectItem>
+                      <SelectItem value="strong">Strong (12+ chars, mixed case, numbers, symbols)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <Separator />
+              
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Data Protection</h3>
+                
+                <div className="flex items-center justify-between space-x-2">
+                  <div className="space-y-0.5">
+                    <Label>Data Encryption</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Encrypt sensitive data at rest
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                
+                <div className="flex items-center justify-between space-x-2">
+                  <div className="space-y-0.5">
+                    <Label>Audit Logging</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Track all changes and access to the system
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="data-retention">Data Retention Period (years)</Label>
+                  <Select defaultValue="7">
+                    <SelectTrigger id="data-retention">
+                      <SelectValue placeholder="Select retention period" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 year</SelectItem>
+                      <SelectItem value="3">3 years</SelectItem>
+                      <SelectItem value="5">5 years</SelectItem>
+                      <SelectItem value="7">7 years</SelectItem>
+                      <SelectItem value="10">10 years</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-sm text-muted-foreground">
+                    How long to keep booking and guest data
+                  </p>
+                </div>
+              </div>
+              
+              <div className="p-4 border rounded-md bg-red-50">
+                <div className="flex gap-3">
+                  <AlertCircle className="h-5 w-5 text-red-600" />
+                  <div>
+                    <h4 className="font-medium text-red-800">Security Alert</h4>
+                    <p className="text-sm text-red-700 mt-1">
+                      The system will automatically lock accounts after 5 failed login attempts.
+                      Please contact an administrator to unlock accounts.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+            <div className="px-6 py-4 flex justify-end gap-4 border-t">
+              <Button variant="outline">Cancel</Button>
+              <Button onClick={handleSaveSecurity} className="flex items-center gap-2">
+                <Save className="h-4 w-4" />
+                Save Security Settings
+              </Button>
+            </div>
           </Card>
         </TabsContent>
       </Tabs>

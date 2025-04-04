@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -20,25 +19,17 @@ type UserFormData = {
   sendInvite: boolean;
 };
 
-interface UserAddProps {
-  mode?: 'add' | 'edit';
-  initialData?: UserFormData;
-  userId?: string;
-}
-
-export const UserAdd = ({ mode = 'add', initialData, userId }: UserAddProps) => {
+const UserAdd = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [formData, setFormData] = useState<UserFormData>(
-    initialData || {
-      name: '',
-      email: '',
-      role: '',
-      password: '',
-      confirmPassword: '',
-      sendInvite: true,
-    }
-  );
+  const [formData, setFormData] = useState<UserFormData>({
+    name: '',
+    email: '',
+    role: '',
+    password: '',
+    confirmPassword: '',
+    sendInvite: true,
+  });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -75,43 +66,32 @@ export const UserAdd = ({ mode = 'add', initialData, userId }: UserAddProps) => 
     e.preventDefault();
     
     // Basic validation
-    if (mode === 'add' || (formData.password && formData.confirmPassword)) {
-      if (formData.password !== formData.confirmPassword) {
-        toast({
-          title: "Passwords don't match",
-          description: "Please make sure your passwords match.",
-          variant: "destructive"
-        });
-        return;
-      }
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Passwords don't match",
+        description: "Please make sure your passwords match.",
+        variant: "destructive"
+      });
+      return;
     }
     
     // In a real app, this would send the data to an API
     console.log('Submitting user:', formData);
     
-    if (mode === 'edit') {
-      toast({
-        title: "User Updated",
-        description: `${formData.name} has been updated successfully.`,
-      });
-      navigate(`/users/${userId}`);
-    } else {
-      toast({
-        title: "User Added",
-        description: `${formData.name} has been added successfully.${formData.sendInvite ? ' An invitation email has been sent.' : ''}`,
-      });
-      navigate('/users');
-    }
+    toast({
+      title: "User Added",
+      description: `${formData.name} has been added successfully.${formData.sendInvite ? ' An invitation email has been sent.' : ''}`,
+    });
+    
+    navigate('/users');
   };
 
   return (
     <div className="animate-fade-in">
-      {mode === 'add' && (
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Add New User</h1>
-          <p className="text-muted-foreground mt-1">Create a new user account and set permissions</p>
-        </div>
-      )}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">Add New User</h1>
+        <p className="text-muted-foreground mt-1">Create a new user account and set permissions</p>
+      </div>
       
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -148,7 +128,7 @@ export const UserAdd = ({ mode = 'add', initialData, userId }: UserAddProps) => 
               
               <div className="space-y-2">
                 <Label htmlFor="role">Role*</Label>
-                <Select onValueChange={handleRoleChange} value={formData.role} required>
+                <Select onValueChange={handleRoleChange} required>
                   <SelectTrigger id="role">
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
@@ -166,27 +146,27 @@ export const UserAdd = ({ mode = 'add', initialData, userId }: UserAddProps) => 
                 <h4 className="font-medium mb-2">Password</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="password">Password{mode === 'add' ? '*' : ''}</Label>
+                    <Label htmlFor="password">Password*</Label>
                     <Input
                       id="password"
                       name="password"
                       type="password"
                       value={formData.password}
                       onChange={handleInputChange}
-                      placeholder={mode === 'edit' ? "Leave blank to keep current" : "Enter password"}
-                      required={mode === 'add'}
+                      placeholder="Enter password"
+                      required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirm Password{mode === 'add' ? '*' : ''}</Label>
+                    <Label htmlFor="confirmPassword">Confirm Password*</Label>
                     <Input
                       id="confirmPassword"
                       name="confirmPassword"
                       type="password"
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
-                      placeholder={mode === 'edit' ? "Leave blank to keep current" : "Confirm password"}
-                      required={mode === 'add'}
+                      placeholder="Confirm password"
+                      required
                     />
                   </div>
                 </div>
@@ -214,21 +194,19 @@ export const UserAdd = ({ mode = 'add', initialData, userId }: UserAddProps) => 
               </div>
               
               <div className="pt-4 border-t">
-                {mode === 'add' && (
-                  <div className="flex items-center space-x-2 mb-4">
-                    <Checkbox
-                      id="sendInvite"
-                      checked={formData.sendInvite}
-                      onCheckedChange={handleCheckboxChange}
-                    />
-                    <label
-                      htmlFor="sendInvite"
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      Send invitation email
-                    </label>
-                  </div>
-                )}
+                <div className="flex items-center space-x-2 mb-4">
+                  <Checkbox
+                    id="sendInvite"
+                    checked={formData.sendInvite}
+                    onCheckedChange={handleCheckboxChange}
+                  />
+                  <label
+                    htmlFor="sendInvite"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    Send invitation email
+                  </label>
+                </div>
                 
                 <div className="p-4 bg-blue-50 rounded-md">
                   <h4 className="font-medium text-blue-800 mb-2">Role Information</h4>
@@ -258,15 +236,11 @@ export const UserAdd = ({ mode = 'add', initialData, userId }: UserAddProps) => 
           </Card>
           
           <div className="lg:col-span-3 flex justify-end gap-4">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => navigate(mode === 'edit' ? `/users/${userId}` : '/users')}
-            >
+            <Button type="button" variant="outline" onClick={() => navigate('/users')}>
               Cancel
             </Button>
             <Button type="submit">
-              {mode === 'edit' ? 'Update User' : 'Add User'}
+              Add User
             </Button>
           </div>
         </div>

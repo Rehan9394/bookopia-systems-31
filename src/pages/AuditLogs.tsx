@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -42,9 +42,8 @@ import {
 } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { useToast } from '@/hooks/use-toast';
 
-type LogType = 'auth' | 'booking' | 'user' | 'system' | 'settings' | 'all';
+type LogType = 'auth' | 'booking' | 'user' | 'system' | 'settings';
 
 interface AuditLog {
   id: number;
@@ -57,21 +56,16 @@ interface AuditLog {
 }
 
 const AuditLogs = () => {
-  const { toast } = useToast();
   const [dateRange, setDateRange] = useState<DateRange>({
     from: undefined,
     to: undefined,
   });
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [logType, setLogType] = useState<LogType>("all");
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [itemsPerPage] = useState<number>(10);
 
   // Sample data - in a real app this would come from a database
-  const allLogs: AuditLog[] = [
+  const logs: AuditLog[] = [
     { 
       id: 1, 
-      timestamp: '2025-04-03 14:30:22', 
+      timestamp: '2023-11-15 14:30:22', 
       user: 'admin@example.com', 
       action: 'User login', 
       type: 'auth',
@@ -80,7 +74,7 @@ const AuditLogs = () => {
     },
     { 
       id: 2, 
-      timestamp: '2025-04-03 13:45:10', 
+      timestamp: '2023-11-15 13:45:10', 
       user: 'jane@example.com', 
       action: 'Booking created', 
       type: 'booking',
@@ -89,7 +83,7 @@ const AuditLogs = () => {
     },
     { 
       id: 3, 
-      timestamp: '2025-04-03 12:30:05', 
+      timestamp: '2023-11-15 12:30:05', 
       user: 'admin@example.com', 
       action: 'User created', 
       type: 'user',
@@ -98,7 +92,7 @@ const AuditLogs = () => {
     },
     { 
       id: 4, 
-      timestamp: '2025-04-03 11:20:15', 
+      timestamp: '2023-11-15 11:20:15', 
       user: 'john@example.com', 
       action: 'Booking updated', 
       type: 'booking',
@@ -107,7 +101,7 @@ const AuditLogs = () => {
     },
     { 
       id: 5, 
-      timestamp: '2025-04-03 10:15:30', 
+      timestamp: '2023-11-15 10:15:30', 
       user: 'system', 
       action: 'Daily backup', 
       type: 'system',
@@ -116,7 +110,7 @@ const AuditLogs = () => {
     },
     { 
       id: 6, 
-      timestamp: '2025-04-03 09:45:00', 
+      timestamp: '2023-11-15 09:45:00', 
       user: 'admin@example.com', 
       action: 'Settings changed', 
       type: 'settings',
@@ -125,7 +119,7 @@ const AuditLogs = () => {
     },
     { 
       id: 7, 
-      timestamp: '2025-04-02 16:30:22', 
+      timestamp: '2023-11-14 16:30:22', 
       user: 'jane@example.com', 
       action: 'Booking cancelled', 
       type: 'booking',
@@ -134,7 +128,7 @@ const AuditLogs = () => {
     },
     { 
       id: 8, 
-      timestamp: '2025-04-02 15:20:10', 
+      timestamp: '2023-11-14 15:20:10', 
       user: 'robert@example.com', 
       action: 'User login failed', 
       type: 'auth',
@@ -143,7 +137,7 @@ const AuditLogs = () => {
     },
     { 
       id: 9, 
-      timestamp: '2025-04-02 14:10:05', 
+      timestamp: '2023-11-14 14:10:05', 
       user: 'admin@example.com', 
       action: 'User updated', 
       type: 'user',
@@ -152,74 +146,15 @@ const AuditLogs = () => {
     },
     { 
       id: 10, 
-      timestamp: '2025-04-02 10:45:30', 
+      timestamp: '2023-11-14 10:45:30', 
       user: 'system', 
       action: 'System update', 
       type: 'system',
       ip: 'internal',
       details: 'Applied system update v2.3.0' 
     },
-    { 
-      id: 11, 
-      timestamp: '2025-04-01 16:15:22', 
-      user: 'admin@example.com', 
-      action: 'User deleted', 
-      type: 'user',
-      ip: '192.168.1.1',
-      details: 'Removed inactive user michael@example.com' 
-    },
-    { 
-      id: 12, 
-      timestamp: '2025-04-01 14:30:10', 
-      user: 'jane@example.com', 
-      action: 'Booking modified', 
-      type: 'booking',
-      ip: '192.168.1.2',
-      details: 'Added extra bed to booking #BK12330' 
-    },
   ];
-  
-  const [filteredLogs, setFilteredLogs] = useState<AuditLog[]>(allLogs);
-  
-  // Apply filters when filter values change
-  useEffect(() => {
-    let filtered = [...allLogs];
-    
-    // Apply log type filter
-    if (logType !== 'all') {
-      filtered = filtered.filter(log => log.type === logType);
-    }
-    
-    // Apply date range filter
-    if (dateRange.from && dateRange.to) {
-      filtered = filtered.filter(log => {
-        const logDate = new Date(log.timestamp);
-        return logDate >= dateRange.from! && logDate <= dateRange.to!;
-      });
-    }
-    
-    // Apply search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(log => 
-        log.user.toLowerCase().includes(query) ||
-        log.action.toLowerCase().includes(query) ||
-        log.details.toLowerCase().includes(query) ||
-        log.ip.toLowerCase().includes(query)
-      );
-    }
-    
-    setFilteredLogs(filtered);
-    setCurrentPage(1);
-    
-    // Notification when filters are applied
-    if (logType !== 'all' || dateRange.from || searchQuery) {
-      toast({
-        description: "Log filters applied successfully",
-      });
-    }
-  }, [logType, dateRange, searchQuery]);
-  
+
   const getLogIcon = (type: LogType) => {
     switch(type) {
       case 'auth':
@@ -236,7 +171,7 @@ const AuditLogs = () => {
         return null;
     }
   };
-  
+
   const getLogTypeBadge = (type: LogType) => {
     switch(type) {
       case 'auth':
@@ -253,56 +188,6 @@ const AuditLogs = () => {
         return <Badge variant="outline">{type}</Badge>;
     }
   };
-  
-  // Pagination logic
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentLogs = filteredLogs.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
-  
-  const goToNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
-  
-  const goToPreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
-  
-  // Handle search
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-  };
-  
-  // Handle clearing filters
-  const clearFilters = () => {
-    setLogType("all");
-    setDateRange({ from: undefined, to: undefined });
-    setSearchQuery("");
-    setFilteredLogs(allLogs);
-    toast({
-      description: "All filters have been cleared",
-    });
-  };
-  
-  // Handle export logs
-  const handleExportLogs = () => {
-    toast({
-      title: "Exporting Logs",
-      description: "Your logs are being prepared for download",
-    });
-  };
-  
-  // Handle security report
-  const handleSecurityReport = () => {
-    toast({
-      title: "Generating Report",
-      description: "Security audit report is being generated",
-    });
-  };
 
   return (
     <div className="animate-fade-in">
@@ -312,11 +197,11 @@ const AuditLogs = () => {
           <p className="text-muted-foreground mt-1">Track all activity across your system</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="flex items-center gap-2" onClick={handleExportLogs}>
+          <Button variant="outline" className="flex items-center gap-2">
             <DownloadCloud className="h-4 w-4" />
             Export Logs
           </Button>
-          <Button className="flex items-center gap-2" onClick={handleSecurityReport}>
+          <Button className="flex items-center gap-2">
             <ShieldCheck className="h-4 w-4" />
             Security Report
           </Button>
@@ -326,15 +211,11 @@ const AuditLogs = () => {
       <Card className="p-6 mb-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="relative">
-            <form onSubmit={handleSearch}>
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search by user, action, or details..." 
-                className="pl-10"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </form>
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search by user, action, or details..." 
+              className="pl-10"
+            />
           </div>
           
           <Popover>
@@ -369,7 +250,7 @@ const AuditLogs = () => {
             </PopoverContent>
           </Popover>
           
-          <Select value={logType} onValueChange={(value) => setLogType(value as LogType)}>
+          <Select>
             <SelectTrigger>
               <SelectValue placeholder="Filter by log type" />
             </SelectTrigger>
@@ -383,17 +264,6 @@ const AuditLogs = () => {
             </SelectContent>
           </Select>
         </div>
-        
-        {(logType !== "all" || dateRange.from || searchQuery) && (
-          <div className="mt-4 flex justify-between items-center">
-            <div className="text-sm text-muted-foreground">
-              {filteredLogs.length} log entries found
-            </div>
-            <Button variant="ghost" size="sm" onClick={clearFilters}>
-              Clear All Filters
-            </Button>
-          </div>
-        )}
       </Card>
       
       <Card>
@@ -409,40 +279,32 @@ const AuditLogs = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {currentLogs.length > 0 ? (
-              currentLogs.map((log) => (
-                <TableRow key={log.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-1.5">
-                      {getLogIcon(log.type)}
-                      {getLogTypeBadge(log.type)}
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-mono text-sm">{log.timestamp}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-1.5">
-                      {log.user === 'system' ? (
-                        <Badge variant="outline">System</Badge>
-                      ) : (
-                        <div className="flex items-center gap-1.5">
-                          <UserCheck className="h-4 w-4 text-muted-foreground" />
-                          <span>{log.user}</span>
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>{log.action}</TableCell>
-                  <TableCell className="font-mono text-sm">{log.ip}</TableCell>
-                  <TableCell className="max-w-xs truncate">{log.details}</TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                  No log entries found matching your filters
+            {logs.map((log) => (
+              <TableRow key={log.id}>
+                <TableCell>
+                  <div className="flex items-center gap-1.5">
+                    {getLogIcon(log.type)}
+                    {getLogTypeBadge(log.type)}
+                  </div>
                 </TableCell>
+                <TableCell className="font-mono text-sm">{log.timestamp}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-1.5">
+                    {log.user === 'system' ? (
+                      <Badge variant="outline">System</Badge>
+                    ) : (
+                      <div className="flex items-center gap-1.5">
+                        <UserCheck className="h-4 w-4 text-muted-foreground" />
+                        <span>{log.user}</span>
+                      </div>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell>{log.action}</TableCell>
+                <TableCell className="font-mono text-sm">{log.ip}</TableCell>
+                <TableCell className="max-w-xs truncate">{log.details}</TableCell>
               </TableRow>
-            )}
+            ))}
           </TableBody>
         </Table>
       </Card>
@@ -452,23 +314,11 @@ const AuditLogs = () => {
         
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-sm text-muted-foreground">
-            Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredLogs.length)} of {filteredLogs.length} log entries
+            Showing 1-10 of 1,248 log entries
           </div>
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              onClick={goToPreviousPage} 
-              disabled={currentPage === 1}
-            >
-              Previous
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={goToNextPage} 
-              disabled={currentPage === totalPages || totalPages === 0}
-            >
-              Next
-            </Button>
+            <Button variant="outline" disabled>Previous</Button>
+            <Button variant="outline">Next</Button>
           </div>
         </div>
         
