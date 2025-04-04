@@ -5,13 +5,86 @@ import { ArrowUpFromLine, User } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { useTodayCheckouts } from '@/hooks/useBookings';
+import { Skeleton } from '@/components/ui/skeleton';
+import { format } from 'date-fns';
 
 export function TodayCheckouts() {
-  // In a real app, this data would come from an API
-  const checkouts = [
-    { id: '3', guest: 'Michael Brown', room: '401', property: 'Marina Tower', time: '12:00', status: 'checked-in' },
-    { id: '4', guest: 'Sarah Davis', room: '501', property: 'Downtown Heights', time: '10:00', status: 'checked-in' },
-  ];
+  const { data: checkouts, isLoading, error } = useTodayCheckouts();
+  
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className="space-y-4 p-3">
+          {[1, 2].map((i) => (
+            <div key={i} className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Skeleton className="h-8 w-8 rounded-full mr-3" />
+                <div>
+                  <Skeleton className="h-4 w-32 mb-2" />
+                  <Skeleton className="h-3 w-48" />
+                </div>
+              </div>
+              <div className="text-right">
+                <Skeleton className="h-3 w-16 mb-1" />
+                <Skeleton className="h-7 w-20" />
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="text-center py-6 text-muted-foreground">
+          <p>Error loading check-outs data</p>
+          <Button variant="outline" size="sm" className="mt-2" onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </div>
+      );
+    }
+
+    if (!checkouts || checkouts.length === 0) {
+      return (
+        <div className="text-center py-6 text-muted-foreground">
+          <p>No check-outs scheduled for today</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="divide-y">
+        {checkouts.map((checkout) => {
+          const roomInfo = checkout.rooms as any;
+          return (
+            <div key={checkout.id} className="flex items-center justify-between p-3">
+              <div className="flex items-center">
+                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary mr-3">
+                  <User className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="font-medium text-sm">{checkout.guest_name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {roomInfo?.property || 'Unknown'} - Room {roomInfo?.number || 'Unknown'}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <Badge variant="outline" className="mb-1 text-xs bg-green-50 text-green-800 border-green-200">
+                  {format(new Date(checkout.check_out), 'HH:mm')}
+                </Badge>
+                <Link to={`/bookings/${checkout.id}`}>
+                  <Button variant="ghost" size="sm" className="h-7 text-xs">Check-out</Button>
+                </Link>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
 
   return (
     <Card>
@@ -27,37 +100,7 @@ export function TodayCheckouts() {
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        {checkouts.length > 0 ? (
-          <div className="divide-y">
-            {checkouts.map((checkout) => (
-              <div key={checkout.id} className="flex items-center justify-between p-3">
-                <div className="flex items-center">
-                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary mr-3">
-                    <User className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">{checkout.guest}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {checkout.property} - Room {checkout.room}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <Badge variant="outline" className="mb-1 text-xs bg-green-50 text-green-800 border-green-200">
-                    {checkout.time}
-                  </Badge>
-                  <Link to={`/bookings/${checkout.id}`}>
-                    <Button variant="ghost" size="sm" className="h-7 text-xs">Check-out</Button>
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-6 text-muted-foreground">
-            <p>No check-outs scheduled for today</p>
-          </div>
-        )}
+        {renderContent()}
       </CardContent>
     </Card>
   );

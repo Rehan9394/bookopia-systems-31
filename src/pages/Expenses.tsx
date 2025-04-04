@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { PlusCircle, Search } from 'lucide-react';
+import { PlusCircle, Search, Loader } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { 
   Select,
@@ -23,28 +23,24 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { useExpenses } from '@/hooks/useExpenses';
+import { format } from 'date-fns';
 
 const Expenses = () => {
   const { toast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
-  
-  // Sample data - in a real app this would come from a database
-  const expenses = [
-    { id: 1, description: 'Cleaning Supplies', amount: 120, date: '2023-11-15', category: 'Maintenance' },
-    { id: 2, description: 'New Bed Linens', amount: 450, date: '2023-11-10', category: 'Room Supplies' },
-    { id: 3, description: 'Staff Salaries', amount: 3200, date: '2023-11-01', category: 'Personnel' },
-    { id: 4, description: 'Electricity Bill', amount: 780, date: '2023-10-28', category: 'Utilities' },
-    { id: 5, description: 'Plumbing Repair', amount: 350, date: '2023-10-20', category: 'Maintenance' },
-  ];
+  const { data: allExpenses, isLoading, error } = useExpenses();
   
   const [searchQuery, setSearchQuery] = useState<string>(searchParams.get('q') || "");
   const [categoryFilter, setCategoryFilter] = useState<string>(searchParams.get('category') || "all");
   const [dateFilter, setDateFilter] = useState<string>(searchParams.get('date') || "all");
-  const [filteredExpenses, setFilteredExpenses] = useState(expenses);
+  const [filteredExpenses, setFilteredExpenses] = useState<any[]>([]);
   
-  // Apply filters
+  // Apply filters when values change or when data loads
   useEffect(() => {
-    let filtered = expenses;
+    if (!allExpenses) return;
+    
+    let filtered = [...allExpenses];
     
     // Apply search filter
     if (searchQuery) {
@@ -92,7 +88,7 @@ const Expenses = () => {
     if (dateFilter !== 'all') params.set('date', dateFilter);
     
     setSearchParams(params, { replace: true });
-  }, [searchQuery, categoryFilter, dateFilter]);
+  }, [searchQuery, categoryFilter, dateFilter, allExpenses]);
   
   // Handle search
   const handleSearch = (e: React.FormEvent) => {
@@ -110,10 +106,18 @@ const Expenses = () => {
     setCategoryFilter("all");
     setDateFilter("all");
     setSearchParams({});
-    setFilteredExpenses(expenses);
     toast({
       description: "All filters have been cleared",
     });
+  };
+
+  // Get unique categories from expenses
+  const getUniqueCategories = () => {
+    if (!allExpenses) return [];
+    
+    const categories = new Set<string>();
+    allExpenses.forEach(expense => categories.add(expense.category));
+    return Array.from(categories);
   };
 
   return (
@@ -151,10 +155,9 @@ const Expenses = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="Maintenance">Maintenance</SelectItem>
-              <SelectItem value="Utilities">Utilities</SelectItem>
-              <SelectItem value="Room Supplies">Room Supplies</SelectItem>
-              <SelectItem value="Personnel">Personnel</SelectItem>
+              {getUniqueCategories().map(category => (
+                <SelectItem key={category} value={category}>{category}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
           
@@ -184,45 +187,62 @@ const Expenses = () => {
       </Card>
       
       <Card>
-        <Table>
-          <TableCaption>A list of all property expenses.</TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Description</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredExpenses.map((expense) => (
-              <TableRow key={expense.id}>
-                <TableCell className="font-medium">{expense.description}</TableCell>
-                <TableCell>${expense.amount.toFixed(2)}</TableCell>
-                <TableCell>{expense.date}</TableCell>
-                <TableCell>
-                  <Badge variant="outline">{expense.category}</Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link to={`/expenses/${expense.id}`}>View</Link>
-                  </Button>
-                  <Button variant="ghost" size="sm" asChild>
-                    <Link to={`/expenses/edit/${expense.id}`}>Edit</Link>
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-            {filteredExpenses.length === 0 && (
+        {isLoading ? (
+          <div className="flex items-center justify-center h-64">
+            <Loader className="h-8 w-8 animate-spin text-primary" />
+            <span className="ml-2">Loading expenses...</span>
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center h-64">
+            <p className="text-red-500">Failed to load expenses data</p>
+            <Button 
+              variant="outline" 
+              className="mt-4"
+              onClick={() => window.location.reload()}
+            >
+              Retry
+            </Button>
+          </div>
+        ) : (
+          <Table>
+            <TableCaption>A list of all property expenses.</TableCaption>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                  No expenses found matching your filters
-                </TableCell>
+                <TableHead>Description</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filteredExpenses.length > 0 ? filteredExpenses.map((expense) => (
+                <TableRow key={expense.id}>
+                  <TableCell className="font-medium">{expense.description}</TableCell>
+                  <TableCell>${expense.amount.toFixed(2)}</TableCell>
+                  <TableCell>{format(new Date(expense.date), 'MMM d, yyyy')}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{expense.category}</Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link to={`/expenses/${expense.id}`}>View</Link>
+                    </Button>
+                    <Button variant="ghost" size="sm" asChild>
+                      <Link to={`/expenses/edit/${expense.id}`}>Edit</Link>
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              )) : (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    No expenses found matching your filters
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
       </Card>
     </div>
   );

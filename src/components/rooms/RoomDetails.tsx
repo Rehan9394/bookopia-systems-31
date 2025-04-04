@@ -7,90 +7,16 @@ import { ArrowLeft, CalendarClock, Edit, Home, Loader, Settings, UserCheck } fro
 import { Link, useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
+import { useRoom } from '@/hooks/useRooms';
+import { format } from 'date-fns';
 
-interface RoomDetails {
-  id: string;
-  roomNumber: string;
-  property: string;
-  type: string;
-  status: 'available' | 'occupied' | 'maintenance';
-  description: string;
-  amenities: string[];
-  basePrice: number;
-  owner: string;
-  maxOccupancy: number;
-  lastCleaned?: string;
-  nextBooking?: {
-    id: string;
-    guestName: string;
-    checkIn: string;
-    checkOut: string;
-  };
-  currentBooking?: {
-    id: string;
-    guestName: string;
-    checkIn: string;
-    checkOut: string;
-  };
-  bookingHistory: Array<{
-    id: string;
-    guestName: string;
-    checkIn: string;
-    checkOut: string;
-    status: 'completed' | 'cancelled';
-  }>;
-}
-
-// Mock data for a specific room - would come from API in real app
-const roomData: RoomDetails = {
-  id: '1',
-  roomNumber: '101',
-  property: 'Marina Tower',
-  type: 'Deluxe Suite',
-  status: 'available',
-  description: 'Luxurious suite with ocean view, featuring modern amenities and a spacious layout perfect for both business and leisure travelers.',
-  amenities: ['Ocean View', 'King Bed', 'Mini Bar', 'Smart TV', 'Free WiFi', 'Work Desk', 'En-suite Bathroom', 'Air Conditioning'],
-  basePrice: 180,
-  owner: 'John Doe',
-  maxOccupancy: 2,
-  lastCleaned: '2023-11-15 14:30',
-  nextBooking: {
-    id: 'b1',
-    guestName: 'Sarah Davis',
-    checkIn: '2023-11-18',
-    checkOut: '2023-11-20'
-  },
-  bookingHistory: [
-    {
-      id: 'bh1',
-      guestName: 'Michael Chen',
-      checkIn: '2023-11-01',
-      checkOut: '2023-11-03',
-      status: 'completed'
-    },
-    {
-      id: 'bh2',
-      guestName: 'Emma Johnson',
-      checkIn: '2023-10-25',
-      checkOut: '2023-10-27',
-      status: 'completed'
-    },
-    {
-      id: 'bh3',
-      guestName: 'Robert Wilson',
-      checkIn: '2023-10-15',
-      checkOut: '2023-10-20',
-      status: 'cancelled'
-    }
-  ]
-};
-
-function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  });
+function formatDate(dateString: string | null | undefined) {
+  if (!dateString) return '';
+  try {
+    return format(new Date(dateString), 'MMM d, yyyy');
+  } catch (e) {
+    return dateString;
+  }
 }
 
 function getStatusBadge(status: string) {
@@ -106,8 +32,37 @@ function getStatusBadge(status: string) {
   }
 }
 
-export function RoomDetails() {
+interface RoomDetailsProps {
+  roomId: string;
+}
+
+export function RoomDetails({ roomId }: RoomDetailsProps) {
   const navigate = useNavigate();
+  const { data: room, isLoading, error } = useRoom(roomId);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Loader className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Loading room details...</span>
+      </div>
+    );
+  }
+
+  if (error || !room) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96">
+        <p className="text-red-500">Failed to load room details</p>
+        <Button 
+          variant="outline" 
+          className="mt-4"
+          onClick={() => navigate('/rooms')}
+        >
+          Back to Rooms
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade-in">
@@ -120,20 +75,22 @@ export function RoomDetails() {
           </Button>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-3xl font-bold">Room {roomData.roomNumber}</h1>
-              {getStatusBadge(roomData.status)}
+              <h1 className="text-3xl font-bold">Room {room.number}</h1>
+              {getStatusBadge(room.status)}
             </div>
-            <p className="text-muted-foreground mt-1">{roomData.property} • {roomData.type}</p>
+            <p className="text-muted-foreground mt-1">{room.type} • Floor {room.floor}</p>
           </div>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" asChild>
-            <Link to={`/rooms/edit/${roomData.id}`}>
+            <Link to={`/rooms/edit/${room.id}`}>
               <Edit className="h-4 w-4 mr-2" />
               Edit Room
             </Link>
           </Button>
-          <Button>Create Booking</Button>
+          <Button asChild>
+            <Link to="/bookings/new">Create Booking</Link>
+          </Button>
         </div>
       </div>
 
@@ -143,43 +100,46 @@ export function RoomDetails() {
             <CardHeader>
               <CardTitle>Room Details</CardTitle>
               <CardDescription>
-                Information about Room {roomData.roomNumber}
+                Information about Room {room.number}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
                 <div>
                   <h3 className="text-lg font-semibold mb-2">Description</h3>
-                  <p className="text-muted-foreground">{roomData.description}</p>
+                  <p className="text-muted-foreground">{room.description || 'No description available'}</p>
                 </div>
 
                 <div>
                   <h3 className="text-lg font-semibold mb-2">Amenities</h3>
                   <div className="flex flex-wrap gap-2">
-                    {roomData.amenities.map((amenity, index) => (
+                    {room.amenities && room.amenities.map((amenity, index) => (
                       <Badge key={index} variant="outline" className="bg-primary/5">
                         {amenity}
                       </Badge>
                     ))}
+                    {(!room.amenities || room.amenities.length === 0) && (
+                      <p className="text-muted-foreground">No amenities listed</p>
+                    )}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">Base Price</p>
-                    <p className="font-medium">${roomData.basePrice} / night</p>
+                    <p className="font-medium">${room.rate} / night</p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">Max Occupancy</p>
-                    <p className="font-medium">{roomData.maxOccupancy} Guests</p>
+                    <p className="font-medium">{room.capacity} Guests</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Owner</p>
-                    <p className="font-medium">{roomData.owner}</p>
+                    <p className="text-sm text-muted-foreground">Floor</p>
+                    <p className="font-medium">{room.floor}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">Last Cleaned</p>
-                    <p className="font-medium">{roomData.lastCleaned || 'Not recorded'}</p>
+                    <p className="text-sm text-muted-foreground">Last Updated</p>
+                    <p className="font-medium">{formatDate(room.updated_at)}</p>
                   </div>
                 </div>
 
@@ -187,25 +147,24 @@ export function RoomDetails() {
 
                 <div>
                   <h3 className="text-lg font-semibold mb-3">Current Status</h3>
-                  {roomData.status === 'occupied' && roomData.currentBooking ? (
+                  {room.status === 'occupied' ? (
                     <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
                       <div className="flex items-start gap-3">
                         <UserCheck className="h-5 w-5 text-blue-500 mt-0.5" />
                         <div>
-                          <p className="font-medium">{roomData.currentBooking.guestName}</p>
+                          <p className="font-medium">Currently Occupied</p>
                           <p className="text-sm text-muted-foreground">
-                            Check-in: {formatDate(roomData.currentBooking.checkIn)} • 
-                            Check-out: {formatDate(roomData.currentBooking.checkOut)}
+                            This room is currently booked and occupied.
                           </p>
                           <Button size="sm" variant="outline" className="mt-2" asChild>
-                            <Link to={`/bookings/${roomData.currentBooking.id}`}>
-                              View Booking
+                            <Link to={`/bookings`}>
+                              View Bookings
                             </Link>
                           </Button>
                         </div>
                       </div>
                     </div>
-                  ) : roomData.status === 'maintenance' ? (
+                  ) : room.status === 'maintenance' ? (
                     <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
                       <div className="flex items-start gap-3">
                         <Settings className="h-5 w-5 text-yellow-500 mt-0.5" />
@@ -226,19 +185,13 @@ export function RoomDetails() {
                         <Home className="h-5 w-5 text-green-500 mt-0.5" />
                         <div>
                           <p className="font-medium">Available for Booking</p>
-                          {roomData.nextBooking ? (
-                            <p className="text-sm text-muted-foreground">
-                              Next booking: {roomData.nextBooking.guestName}, 
-                              {formatDate(roomData.nextBooking.checkIn)} - 
-                              {formatDate(roomData.nextBooking.checkOut)}
-                            </p>
-                          ) : (
-                            <p className="text-sm text-muted-foreground">
-                              No upcoming bookings.
-                            </p>
-                          )}
-                          <Button size="sm" className="mt-2">
-                            Create Booking
+                          <p className="text-sm text-muted-foreground">
+                            This room is currently available and can be booked.
+                          </p>
+                          <Button size="sm" className="mt-2" asChild>
+                            <Link to="/bookings/new">
+                              Create Booking
+                            </Link>
                           </Button>
                         </div>
                       </div>
@@ -266,7 +219,7 @@ export function RoomDetails() {
                 Check Availability
               </Button>
               <Button className="w-full justify-start" variant="outline" size="lg" asChild>
-                <Link to={`/rooms/edit/${roomData.id}`}>
+                <Link to={`/rooms/edit/${room.id}`}>
                   <Settings className="h-4 w-4 mr-2" />
                   Update Room Details
                 </Link>
@@ -302,29 +255,11 @@ export function RoomDetails() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {roomData.bookingHistory.map((booking) => (
-                      <tr key={booking.id} className="hover:bg-muted/50">
-                        <td className="px-6 py-4 font-medium">{booking.guestName}</td>
-                        <td className="px-6 py-4">{formatDate(booking.checkIn)}</td>
-                        <td className="px-6 py-4">{formatDate(booking.checkOut)}</td>
-                        <td className="px-6 py-4">
-                          <Badge className={
-                            booking.status === 'completed' 
-                              ? "bg-green-100 text-green-800" 
-                              : "bg-red-100 text-red-800"
-                          }>
-                            {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                          </Badge>
-                        </td>
-                        <td className="px-6 py-4">
-                          <Button size="sm" variant="outline" asChild>
-                            <Link to={`/bookings/${booking.id}`}>
-                              View Details
-                            </Link>
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
+                        Booking history data is loading or not available
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </div>

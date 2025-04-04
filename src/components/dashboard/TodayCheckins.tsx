@@ -5,14 +5,86 @@ import { ArrowDownToLine, User } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { useTodayCheckins } from '@/hooks/useBookings';
+import { Skeleton } from '@/components/ui/skeleton';
+import { format } from 'date-fns';
 
 export function TodayCheckins() {
-  // In a real app, this data would come from an API
-  const checkins = [
-    { id: '1', guest: 'John Smith', room: '301', property: 'Marina Tower', time: '14:00', status: 'pending' },
-    { id: '2', guest: 'Emma Johnson', room: '502', property: 'Downtown Heights', time: '15:00', status: 'pending' },
-    { id: '3', guest: 'Michael Chen', room: '205', property: 'Marina Tower', time: '12:00', status: 'pending' },
-  ];
+  const { data: checkins, isLoading, error } = useTodayCheckins();
+  
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className="space-y-4 p-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Skeleton className="h-8 w-8 rounded-full mr-3" />
+                <div>
+                  <Skeleton className="h-4 w-32 mb-2" />
+                  <Skeleton className="h-3 w-48" />
+                </div>
+              </div>
+              <div className="text-right">
+                <Skeleton className="h-3 w-16 mb-1" />
+                <Skeleton className="h-7 w-20" />
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="text-center py-6 text-muted-foreground">
+          <p>Error loading check-ins data</p>
+          <Button variant="outline" size="sm" className="mt-2" onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </div>
+      );
+    }
+
+    if (!checkins || checkins.length === 0) {
+      return (
+        <div className="text-center py-6 text-muted-foreground">
+          <p>No check-ins scheduled for today</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="divide-y">
+        {checkins.map((checkin) => {
+          const roomInfo = checkin.rooms as any;
+          return (
+            <div key={checkin.id} className="flex items-center justify-between p-3">
+              <div className="flex items-center">
+                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary mr-3">
+                  <User className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="font-medium text-sm">{checkin.guest_name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {roomInfo?.property || 'Unknown'} - Room {roomInfo?.number || 'Unknown'}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <Badge variant="outline" className="mb-1 text-xs bg-blue-50 text-blue-800 border-blue-200">
+                  {format(new Date(checkin.check_in), 'HH:mm')}
+                </Badge>
+                <Link to={`/bookings/${checkin.id}`}>
+                  <Button variant="ghost" size="sm" className="h-7 text-xs">Check-in</Button>
+                </Link>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
 
   return (
     <Card>
@@ -28,37 +100,7 @@ export function TodayCheckins() {
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        {checkins.length > 0 ? (
-          <div className="divide-y">
-            {checkins.map((checkin) => (
-              <div key={checkin.id} className="flex items-center justify-between p-3">
-                <div className="flex items-center">
-                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary mr-3">
-                    <User className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">{checkin.guest}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {checkin.property} - Room {checkin.room}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <Badge variant="outline" className="mb-1 text-xs bg-blue-50 text-blue-800 border-blue-200">
-                    {checkin.time}
-                  </Badge>
-                  <Link to={`/bookings/${checkin.id}`}>
-                    <Button variant="ghost" size="sm" className="h-7 text-xs">Check-in</Button>
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-6 text-muted-foreground">
-            <p>No check-ins scheduled for today</p>
-          </div>
-        )}
+        {renderContent()}
       </CardContent>
     </Card>
   );
