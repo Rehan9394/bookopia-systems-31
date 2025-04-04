@@ -23,7 +23,7 @@ export const useUpdateRoomStatus = () => {
   const { toast } = useToast();
   
   return useMutation({
-    mutationFn: ({ id, status }: { id: string, status: string }) => {
+    mutationFn: ({ id, status }: { id: string, status: 'available' | 'occupied' | 'maintenance' }) => {
       return updateRoomStatus(id, status);
     },
     onSuccess: () => {

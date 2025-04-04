@@ -38,8 +38,8 @@ const BookingView = () => {
     );
   }
 
-  // Now pass the booking directly to match the component's props
-  return <BookingDetails booking={booking} />;
+  // Pass the booking directly as the bookingData prop
+  return <BookingDetails bookingData={booking} />;
 };
 
 export default BookingView;

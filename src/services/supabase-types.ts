@@ -13,6 +13,13 @@ export type Room = {
   updated_at: string;
 };
 
+export type RoomLight = {
+  id: string;
+  number: string;
+  type: string;
+  property: string;
+};
+
 export type Booking = {
   id: string;
   room_id: string;
@@ -26,7 +33,7 @@ export type Booking = {
   special_requests: string | null;
   created_at: string;
   updated_at: string;
-  rooms?: Room; // Add optional rooms property for joins
+  rooms?: RoomLight; // Update to use RoomLight type for joined data
 };
 
 export type User = {

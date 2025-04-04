@@ -6,7 +6,8 @@ import {
   Owner, 
   Expense, 
   CleaningTask,
-  PropertyOwnership
+  PropertyOwnership,
+  RoomLight
 } from './supabase-types';
 
 export const fetchRooms = async (): Promise<Room[]> => {
@@ -70,20 +71,23 @@ export const fetchRoomByNumber = async (number: string): Promise<Room> => {
 export const fetchBookings = async (): Promise<Booking[]> => {
   const { data, error } = await supabase
     .from('bookings')
-    .select('*, rooms(number, property:type)');
+    .select('*, rooms:room_id(id, number, type, property:type)');
   
   if (error) {
     console.error('Error fetching bookings:', error);
     throw error;
   }
   
-  return data || [];
+  return (data || []).map(booking => ({
+    ...booking,
+    rooms: booking.rooms as unknown as RoomLight
+  }));
 };
 
 export const fetchBookingById = async (id: string): Promise<Booking> => {
   const { data, error } = await supabase
     .from('bookings')
-    .select('*, rooms(number, property:type)')
+    .select('*, rooms:room_id(id, number, type, property:type)')
     .eq('id', id)
     .single();
   
@@ -92,7 +96,10 @@ export const fetchBookingById = async (id: string): Promise<Booking> => {
     throw error;
   }
   
-  return data;
+  return {
+    ...data,
+    rooms: data.rooms as unknown as RoomLight
+  };
 };
 
 export const fetchTodayCheckins = async (): Promise<Booking[]> => {
@@ -100,7 +107,7 @@ export const fetchTodayCheckins = async (): Promise<Booking[]> => {
   
   const { data, error } = await supabase
     .from('bookings')
-    .select('*, rooms(number, property:type)')
+    .select('*, rooms:room_id(id, number, type, property:type)')
     .eq('check_in', today)
     .eq('status', 'confirmed');
   
@@ -109,7 +116,10 @@ export const fetchTodayCheckins = async (): Promise<Booking[]> => {
     throw error;
   }
   
-  return data || [];
+  return (data || []).map(booking => ({
+    ...booking,
+    rooms: booking.rooms as unknown as RoomLight
+  }));
 };
 
 export const fetchTodayCheckouts = async (): Promise<Booking[]> => {
@@ -117,7 +127,7 @@ export const fetchTodayCheckouts = async (): Promise<Booking[]> => {
   
   const { data, error } = await supabase
     .from('bookings')
-    .select('*, rooms(number, property:type)')
+    .select('*, rooms:room_id(id, number, type, property:type)')
     .eq('check_out', today)
     .eq('status', 'checked-in');
   
@@ -126,7 +136,10 @@ export const fetchTodayCheckouts = async (): Promise<Booking[]> => {
     throw error;
   }
   
-  return data || [];
+  return (data || []).map(booking => ({
+    ...booking,
+    rooms: booking.rooms as unknown as RoomLight
+  }));
 };
 
 export const fetchUsers = async (): Promise<User[]> => {

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,6 +18,11 @@ import {
 import { Link } from 'react-router-dom';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Booking } from '@/services/supabase-types';
+
+interface BookingDetailsProps {
+  bookingData: Booking;
+}
 
 interface BookingDetails {
   id: string;
@@ -150,7 +154,7 @@ function getPaymentStatusBadge(status: string) {
   }
 }
 
-export function BookingDetails() {
+export function BookingDetails({ bookingData }: BookingDetailsProps) {
   const nights = getNights(bookingData.checkIn, bookingData.checkOut);
   
   return (
