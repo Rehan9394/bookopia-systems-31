@@ -6,11 +6,11 @@ import { CalendarClock, Edit, Home, Trash2, UserCheck } from 'lucide-react';
 import { ViewToggle } from '@/components/ui/ViewToggle';
 
 // Define the Room interface
-interface Room {
+export interface Room {
   id: string;
   roomNumber: string;
   property: string;
-  status: 'available' | 'occupied' | 'maintenance';
+  status: 'available' | 'occupied' | 'maintenance' | string;
   owner?: string;
   type?: string;
   price?: number;
@@ -112,10 +112,10 @@ function getStatusBadge(status: string) {
   }
 }
 
-interface RoomListProps {
+export interface RoomListProps {
   view: 'grid' | 'list';
   onViewChange: (view: 'grid' | 'list') => void;
-  rooms?: Room[]; // Add the rooms prop to the interface
+  rooms?: Room[]; // Making sure rooms is included in the interface
   onViewRoom?: (id: string) => void;
   onEditRoom?: (id: string) => void;
 }
