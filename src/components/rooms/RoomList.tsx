@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -6,12 +5,15 @@ import { Button } from '@/components/ui/button';
 import { CalendarClock, Edit, Home, Trash2, UserCheck } from 'lucide-react';
 import { ViewToggle } from '@/components/ui/ViewToggle';
 
+// Define the Room interface
 interface Room {
   id: string;
   roomNumber: string;
   property: string;
   status: 'available' | 'occupied' | 'maintenance';
-  owner: string;
+  owner?: string;
+  type?: string;
+  price?: number;
   nextBooking?: {
     guestName: string;
     checkIn: string;
@@ -20,7 +22,7 @@ interface Room {
 }
 
 // Mock data - would come from API in real app
-const rooms: Room[] = [
+const defaultRooms: Room[] = [
   {
     id: '1',
     roomNumber: '101',
@@ -113,16 +115,24 @@ function getStatusBadge(status: string) {
 interface RoomListProps {
   view: 'grid' | 'list';
   onViewChange: (view: 'grid' | 'list') => void;
+  rooms?: Room[]; // Add the rooms prop to the interface
+  onViewRoom?: (id: string) => void;
+  onEditRoom?: (id: string) => void;
 }
 
-export function RoomList({ view, onViewChange }: RoomListProps) {
+export function RoomList({ 
+  view, 
+  onViewChange, 
+  rooms = defaultRooms, 
+  onViewRoom = () => {}, 
+  onEditRoom = () => {} 
+}: RoomListProps) {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Rooms</h2>
         <div className="flex gap-4">
           <ViewToggle view={view} setView={onViewChange} />
-          <Button>Add New Room</Button>
         </div>
       </div>
       
@@ -145,7 +155,7 @@ export function RoomList({ view, onViewChange }: RoomListProps) {
                   <td className="px-6 py-4 font-medium">{room.roomNumber}</td>
                   <td className="px-6 py-4">{room.property}</td>
                   <td className="px-6 py-4">{getStatusBadge(room.status)}</td>
-                  <td className="px-6 py-4">{room.owner}</td>
+                  <td className="px-6 py-4">{room.owner || 'N/A'}</td>
                   <td className="px-6 py-4">
                     {room.nextBooking ? (
                       <div className="flex flex-col">
@@ -161,7 +171,7 @@ export function RoomList({ view, onViewChange }: RoomListProps) {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button size="sm" variant="ghost">
+                      <Button size="sm" variant="ghost" onClick={() => onEditRoom(room.id)}>
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button size="sm" variant="ghost" className="text-red-500">
@@ -199,7 +209,7 @@ export function RoomList({ view, onViewChange }: RoomListProps) {
                     </div>
                     <div>
                       <p className="text-xs font-medium text-muted-foreground">OWNER</p>
-                      <p className="text-sm">{room.owner}</p>
+                      <p className="text-sm">{room.owner || 'N/A'}</p>
                     </div>
                   </div>
                   
@@ -224,11 +234,11 @@ export function RoomList({ view, onViewChange }: RoomListProps) {
                 </div>
                 
                 <div className="flex justify-end gap-2 pt-4 mt-4 border-t">
-                  <Button size="sm" variant="outline">
+                  <Button size="sm" variant="outline" onClick={() => onEditRoom(room.id)}>
                     <Edit className="h-3.5 w-3.5 mr-1" />
                     Edit
                   </Button>
-                  <Button size="sm">Manage</Button>
+                  <Button size="sm" onClick={() => onViewRoom(room.id)}>Manage</Button>
                 </div>
               </div>
             </Card>
