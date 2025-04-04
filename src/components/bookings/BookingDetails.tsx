@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,7 +25,9 @@ interface BookingDetailsProps {
   bookingData: Booking;
 }
 
-interface BookingDetails {
+// Since our database schema doesn't match the component's expected data format,
+// we'll create an adapter to transform the Booking data into the format the component expects
+interface BookingDetailsUI {
   id: string;
   reference: string;
   guestName: string;
@@ -57,55 +60,54 @@ interface BookingDetails {
   }>;
 }
 
-// Mock data for a specific booking - would come from API in real app
-const bookingData: BookingDetails = {
-  id: 'b1',
-  reference: 'BK-2023-0012',
-  guestName: 'John Smith',
-  guestEmail: 'john.smith@example.com',
-  guestPhone: '+1 (555) 123-4567',
-  property: 'Marina Tower',
-  roomNumber: '101',
-  checkIn: '2023-11-18',
-  checkOut: '2023-11-21',
-  status: 'confirmed',
-  paymentStatus: 'paid',
-  baseRate: 150,
-  totalAmount: 450,
-  adults: 2,
-  children: 0,
-  notes: 'Guest requested a high floor with ocean view. Prefers quiet room away from elevator.',
-  createdAt: '2023-11-01 10:30:45',
-  paymentHistory: [
-    {
-      id: 'p1',
-      date: '2023-11-01',
-      amount: 450,
-      method: 'Credit Card',
-      status: 'Success'
-    }
-  ],
-  activityLog: [
-    {
-      id: 'a1',
-      date: '2023-11-01 10:30:45',
-      action: 'Booking Created',
-      user: 'admin@example.com'
-    },
-    {
-      id: 'a2',
-      date: '2023-11-01 10:35:20',
-      action: 'Payment Processed',
-      user: 'system'
-    },
-    {
-      id: 'a3',
-      date: '2023-11-02 09:15:10',
-      action: 'Confirmation Email Sent',
-      user: 'system'
-    }
-  ]
-};
+// Function to adapt the database booking to UI format
+function adaptBookingForUI(booking: Booking): BookingDetailsUI {
+  // Create mock data for properties that don't exist in our database schema
+  return {
+    id: booking.id,
+    reference: booking.booking_number,
+    guestName: booking.guest_name,
+    guestEmail: "guest@example.com", // Mock data
+    guestPhone: "+1 (555) 123-4567", // Mock data
+    property: booking.rooms?.property || "Unknown Property",
+    roomNumber: booking.rooms?.number || "Unknown",
+    checkIn: booking.check_in,
+    checkOut: booking.check_out,
+    status: booking.status as 'confirmed' | 'checked-in' | 'checked-out' | 'cancelled' | 'pending',
+    paymentStatus: booking.payment_status as 'paid' | 'partial' | 'pending' | 'refunded',
+    baseRate: booking.amount / (getNights(booking.check_in, booking.check_out) || 1), // Estimate base rate
+    totalAmount: booking.amount,
+    adults: 2, // Mock data
+    children: 0, // Mock data
+    notes: booking.special_requests || undefined,
+    createdAt: booking.created_at,
+    // Mock payment history
+    paymentHistory: [
+      {
+        id: 'p1',
+        date: booking.created_at.split('T')[0],
+        amount: booking.amount,
+        method: 'Credit Card',
+        status: 'Success'
+      }
+    ],
+    // Mock activity log
+    activityLog: [
+      {
+        id: 'a1',
+        date: booking.created_at,
+        action: 'Booking Created',
+        user: 'admin@example.com'
+      },
+      {
+        id: 'a2',
+        date: booking.updated_at,
+        action: 'Booking Updated',
+        user: 'system'
+      }
+    ]
+  };
+}
 
 function formatDate(dateString: string) {
   return new Date(dateString).toLocaleDateString('en-US', {
@@ -155,7 +157,9 @@ function getPaymentStatusBadge(status: string) {
 }
 
 export function BookingDetails({ bookingData }: BookingDetailsProps) {
-  const nights = getNights(bookingData.checkIn, bookingData.checkOut);
+  // Transform the database booking to the UI format
+  const bookingUI = adaptBookingForUI(bookingData);
+  const nights = getNights(bookingUI.checkIn, bookingUI.checkOut);
   
   return (
     <div className="animate-fade-in">
@@ -168,11 +172,11 @@ export function BookingDetails({ bookingData }: BookingDetailsProps) {
           </Button>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-3xl font-bold">Booking {bookingData.reference}</h1>
-              {getStatusBadge(bookingData.status)}
+              <h1 className="text-3xl font-bold">Booking {bookingUI.reference}</h1>
+              {getStatusBadge(bookingUI.status)}
             </div>
             <p className="text-muted-foreground mt-1">
-              {formatDate(bookingData.checkIn)} - {formatDate(bookingData.checkOut)} • {nights} {nights > 1 ? 'nights' : 'night'}
+              {formatDate(bookingUI.checkIn)} - {formatDate(bookingUI.checkOut)} • {nights} {nights > 1 ? 'nights' : 'night'}
             </p>
           </div>
         </div>
@@ -186,7 +190,7 @@ export function BookingDetails({ bookingData }: BookingDetailsProps) {
             Email Guest
           </Button>
           <Button asChild>
-            <Link to={`/bookings/edit/${bookingData.id}`}>
+            <Link to={`/bookings/edit/${bookingUI.id}`}>
               <Edit className="h-4 w-4 mr-2" />
               Edit
             </Link>
@@ -200,7 +204,7 @@ export function BookingDetails({ bookingData }: BookingDetailsProps) {
             <CardHeader>
               <CardTitle>Booking Details</CardTitle>
               <CardDescription>
-                Created on {formatDate(bookingData.createdAt)}
+                Created on {formatDate(bookingUI.createdAt)}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -211,21 +215,21 @@ export function BookingDetails({ bookingData }: BookingDetailsProps) {
                     <div className="bg-muted/30 rounded-md p-4 space-y-3">
                       <div className="flex items-center gap-3">
                         <User className="h-5 w-5 text-muted-foreground" />
-                        <span className="font-medium">{bookingData.guestName}</span>
+                        <span className="font-medium">{bookingUI.guestName}</span>
                       </div>
                       <div className="flex items-center gap-3">
                         <Mail className="h-5 w-5 text-muted-foreground" />
-                        <a href={`mailto:${bookingData.guestEmail}`} className="text-primary hover:underline">
-                          {bookingData.guestEmail}
+                        <a href={`mailto:${bookingUI.guestEmail}`} className="text-primary hover:underline">
+                          {bookingUI.guestEmail}
                         </a>
                       </div>
                       <div className="flex items-center gap-3">
                         <Phone className="h-5 w-5 text-muted-foreground" />
-                        <span>{bookingData.guestPhone}</span>
+                        <span>{bookingUI.guestPhone}</span>
                       </div>
                       <div className="flex items-center gap-3">
                         <Users className="h-5 w-5 text-muted-foreground" />
-                        <span>{bookingData.adults} Adults, {bookingData.children} Children</span>
+                        <span>{bookingUI.adults} Adults, {bookingUI.children} Children</span>
                       </div>
                     </div>
                   </div>
@@ -235,11 +239,11 @@ export function BookingDetails({ bookingData }: BookingDetailsProps) {
                     <div className="bg-muted/30 rounded-md p-4 space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="font-medium">Payment Status</span>
-                        {getPaymentStatusBadge(bookingData.paymentStatus)}
+                        {getPaymentStatusBadge(bookingUI.paymentStatus)}
                       </div>
                       <div className="flex items-center justify-between">
                         <span>Base Rate</span>
-                        <span>${bookingData.baseRate.toFixed(2)} / night</span>
+                        <span>${bookingUI.baseRate.toFixed(2)} / night</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span>Nights</span>
@@ -248,7 +252,7 @@ export function BookingDetails({ bookingData }: BookingDetailsProps) {
                       <Separator />
                       <div className="flex items-center justify-between font-bold">
                         <span>Total Amount</span>
-                        <span>${bookingData.totalAmount.toFixed(2)}</span>
+                        <span>${bookingUI.totalAmount.toFixed(2)}</span>
                       </div>
                     </div>
                   </div>
@@ -261,8 +265,8 @@ export function BookingDetails({ bookingData }: BookingDetailsProps) {
                       <div className="flex items-center gap-3">
                         <Home className="h-5 w-5 text-muted-foreground" />
                         <div>
-                          <span className="font-medium">Room {bookingData.roomNumber}</span>
-                          <p className="text-sm text-muted-foreground">{bookingData.property}</p>
+                          <span className="font-medium">Room {bookingUI.roomNumber}</span>
+                          <p className="text-sm text-muted-foreground">{bookingUI.property}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
@@ -271,28 +275,28 @@ export function BookingDetails({ bookingData }: BookingDetailsProps) {
                           <div className="grid grid-cols-2 gap-2">
                             <div>
                               <p className="text-xs text-muted-foreground">Check-in</p>
-                              <p className="font-medium">{formatDate(bookingData.checkIn)}</p>
+                              <p className="font-medium">{formatDate(bookingUI.checkIn)}</p>
                             </div>
                             <div>
                               <p className="text-xs text-muted-foreground">Check-out</p>
-                              <p className="font-medium">{formatDate(bookingData.checkOut)}</p>
+                              <p className="font-medium">{formatDate(bookingUI.checkOut)}</p>
                             </div>
                           </div>
                         </div>
                       </div>
                       <Button variant="outline" className="w-full" asChild>
-                        <Link to={`/rooms/view/${bookingData.roomNumber}`}>
+                        <Link to={`/rooms/view/${bookingUI.roomNumber}`}>
                           View Room Details
                         </Link>
                       </Button>
                     </div>
                   </div>
 
-                  {bookingData.notes && (
+                  {bookingUI.notes && (
                     <div>
                       <h3 className="text-sm font-medium text-muted-foreground mb-1">Special Requests / Notes</h3>
                       <div className="bg-muted/30 rounded-md p-4">
-                        <p className="text-sm">{bookingData.notes}</p>
+                        <p className="text-sm">{bookingUI.notes}</p>
                       </div>
                     </div>
                   )}
@@ -300,13 +304,13 @@ export function BookingDetails({ bookingData }: BookingDetailsProps) {
                   <div>
                     <h3 className="text-sm font-medium text-muted-foreground mb-1">Actions</h3>
                     <div className="bg-muted/30 rounded-md p-4 space-y-2">
-                      {bookingData.status === 'confirmed' && (
+                      {bookingUI.status === 'confirmed' && (
                         <Button className="w-full">Check In Guest</Button>
                       )}
-                      {bookingData.status === 'checked-in' && (
+                      {bookingUI.status === 'checked-in' && (
                         <Button className="w-full">Check Out Guest</Button>
                       )}
-                      {(bookingData.status === 'confirmed' || bookingData.status === 'pending') && (
+                      {(bookingUI.status === 'confirmed' || bookingUI.status === 'pending') && (
                         <Button variant="outline" className="w-full text-red-500 hover:text-red-700">
                           Cancel Booking
                         </Button>
@@ -335,7 +339,7 @@ export function BookingDetails({ bookingData }: BookingDetailsProps) {
                 Generate Invoice
               </Button>
               <Button className="w-full justify-start" size="lg" variant="outline" asChild>
-                <Link to={`/bookings/edit/${bookingData.id}`}>
+                <Link to={`/bookings/edit/${bookingUI.id}`}>
                   <Edit className="h-4 w-4 mr-2" />
                   Modify Booking
                 </Link>
@@ -367,7 +371,7 @@ export function BookingDetails({ bookingData }: BookingDetailsProps) {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {bookingData.paymentHistory?.map((payment) => (
+                    {bookingUI.paymentHistory?.map((payment) => (
                       <tr key={payment.id} className="hover:bg-muted/50">
                         <td className="px-6 py-4">{formatDate(payment.date)}</td>
                         <td className="px-6 py-4 font-medium">${payment.amount.toFixed(2)}</td>
@@ -401,7 +405,7 @@ export function BookingDetails({ bookingData }: BookingDetailsProps) {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {bookingData.activityLog?.map((activity) => (
+                    {bookingUI.activityLog?.map((activity) => (
                       <tr key={activity.id} className="hover:bg-muted/50">
                         <td className="px-6 py-4">{activity.date}</td>
                         <td className="px-6 py-4 font-medium">{activity.action}</td>
