@@ -3,19 +3,98 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CalendarClock, Edit, Home, Trash2, UserCheck, Loader } from 'lucide-react';
+import { CalendarClock, Edit, Home, Trash2, UserCheck } from 'lucide-react';
 import { ViewToggle } from '@/components/ui/ViewToggle';
-import { useRooms } from '@/hooks/useRooms';
-import { Link } from 'react-router-dom';
-import { format } from 'date-fns';
-import { Room } from '@/services/supabase-types';
+
+interface Room {
+  id: string;
+  roomNumber: string;
+  property: string;
+  status: 'available' | 'occupied' | 'maintenance';
+  owner: string;
+  nextBooking?: {
+    guestName: string;
+    checkIn: string;
+    checkOut: string;
+  };
+}
+
+// Mock data - would come from API in real app
+const rooms: Room[] = [
+  {
+    id: '1',
+    roomNumber: '101',
+    property: 'Marina Tower',
+    status: 'available',
+    owner: 'John Doe',
+    nextBooking: {
+      guestName: 'Sarah Davis',
+      checkIn: '2023-06-18',
+      checkOut: '2023-06-20'
+    }
+  },
+  {
+    id: '2',
+    roomNumber: '102',
+    property: 'Marina Tower',
+    status: 'occupied',
+    owner: 'Jane Smith',
+    nextBooking: {
+      guestName: 'Michael Chen',
+      checkIn: '2023-06-12',
+      checkOut: '2023-06-16'
+    }
+  },
+  {
+    id: '3',
+    roomNumber: '201',
+    property: 'Downtown Heights',
+    status: 'maintenance',
+    owner: 'Robert Wilson',
+  },
+  {
+    id: '4',
+    roomNumber: '202',
+    property: 'Downtown Heights',
+    status: 'available',
+    owner: 'Lisa Wong',
+    nextBooking: {
+      guestName: 'Emma Johnson',
+      checkIn: '2023-06-25',
+      checkOut: '2023-06-28'
+    }
+  },
+  {
+    id: '5',
+    roomNumber: '301',
+    property: 'Marina Tower',
+    status: 'occupied',
+    owner: 'John Doe',
+    nextBooking: {
+      guestName: 'James Brown',
+      checkIn: '2023-06-14',
+      checkOut: '2023-06-18'
+    }
+  },
+  {
+    id: '6',
+    roomNumber: '302',
+    property: 'Marina Tower',
+    status: 'available',
+    owner: 'Jane Smith',
+    nextBooking: {
+      guestName: 'David Miller',
+      checkIn: '2023-07-01',
+      checkOut: '2023-07-05'
+    }
+  }
+];
 
 function formatDate(dateString: string) {
-  try {
-    return format(new Date(dateString), 'MMM d');
-  } catch (e) {
-    return dateString;
-  }
+  return new Date(dateString).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric'
+  });
 }
 
 function getStatusBadge(status: string) {
@@ -37,41 +116,13 @@ interface RoomListProps {
 }
 
 export function RoomList({ view, onViewChange }: RoomListProps) {
-  const { data: rooms, isLoading, error } = useRooms();
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader className="h-8 w-8 animate-spin text-primary" />
-        <span className="ml-2">Loading rooms...</span>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64">
-        <p className="text-red-500">Failed to load rooms data</p>
-        <Button 
-          variant="outline" 
-          className="mt-4"
-          onClick={() => window.location.reload()}
-        >
-          Retry
-        </Button>
-      </div>
-    );
-  }
-
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Rooms</h2>
         <div className="flex gap-4">
           <ViewToggle view={view} setView={onViewChange} />
-          <Button asChild>
-            <Link to="/rooms/add">Add New Room</Link>
-          </Button>
+          <Button>Add New Room</Button>
         </div>
       </div>
       
@@ -81,45 +132,51 @@ export function RoomList({ view, onViewChange }: RoomListProps) {
             <thead className="bg-muted">
               <tr>
                 <th className="text-left font-medium px-6 py-3">Room No.</th>
-                <th className="text-left font-medium px-6 py-3">Floor</th>
-                <th className="text-left font-medium px-6 py-3">Type</th>
+                <th className="text-left font-medium px-6 py-3">Property</th>
                 <th className="text-left font-medium px-6 py-3">Status</th>
-                <th className="text-left font-medium px-6 py-3">Rate</th>
+                <th className="text-left font-medium px-6 py-3">Owner</th>
+                <th className="text-left font-medium px-6 py-3">Next Booking</th>
                 <th className="text-left font-medium px-6 py-3">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {rooms && rooms.map((room) => (
+              {rooms.map((room) => (
                 <tr key={room.id} className="group hover:bg-muted/50">
-                  <td className="px-6 py-4 font-medium">{room.number}</td>
-                  <td className="px-6 py-4">{room.floor}</td>
-                  <td className="px-6 py-4">{room.type}</td>
+                  <td className="px-6 py-4 font-medium">{room.roomNumber}</td>
+                  <td className="px-6 py-4">{room.property}</td>
                   <td className="px-6 py-4">{getStatusBadge(room.status)}</td>
-                  <td className="px-6 py-4">${room.rate}/night</td>
+                  <td className="px-6 py-4">{room.owner}</td>
+                  <td className="px-6 py-4">
+                    {room.nextBooking ? (
+                      <div className="flex flex-col">
+                        <span className="text-sm">{room.nextBooking.guestName}</span>
+                        <span className="text-xs text-muted-foreground mt-1 flex items-center">
+                          <CalendarClock className="h-3 w-3 mr-1" />
+                          {formatDate(room.nextBooking.checkIn)} - {formatDate(room.nextBooking.checkOut)}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">No upcoming bookings</span>
+                    )}
+                  </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button size="sm" variant="ghost" asChild>
-                        <Link to={`/rooms/view/${room.id}`}>
-                          <Edit className="h-4 w-4" />
-                        </Link>
+                      <Button size="sm" variant="ghost">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button size="sm" variant="ghost" className="text-red-500">
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </td>
                 </tr>
               ))}
-              {(!rooms || rooms.length === 0) && (
-                <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
-                    No rooms found
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {rooms && rooms.map((room) => (
+          {rooms.map((room) => (
             <Card key={room.id} className="overflow-hidden hover:shadow-md transition-shadow">
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
@@ -128,8 +185,8 @@ export function RoomList({ view, onViewChange }: RoomListProps) {
                       <Home className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold">Room {room.number}</h3>
-                      <p className="text-sm text-muted-foreground">{room.type}</p>
+                      <h3 className="text-lg font-semibold">Room {room.roomNumber}</h3>
+                      <p className="text-sm text-muted-foreground">{room.property}</p>
                     </div>
                   </div>
                   {getStatusBadge(room.status)}
@@ -141,8 +198,8 @@ export function RoomList({ view, onViewChange }: RoomListProps) {
                       <UserCheck className="h-4 w-4 text-muted-foreground" />
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-muted-foreground">CAPACITY</p>
-                      <p className="text-sm">{room.capacity} Guests</p>
+                      <p className="text-xs font-medium text-muted-foreground">OWNER</p>
+                      <p className="text-sm">{room.owner}</p>
                     </div>
                   </div>
                   
@@ -151,33 +208,31 @@ export function RoomList({ view, onViewChange }: RoomListProps) {
                       <CalendarClock className="h-4 w-4 text-muted-foreground" />
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-muted-foreground">RATE</p>
-                      <p className="text-sm">${room.rate}/night</p>
+                      <p className="text-xs font-medium text-muted-foreground">NEXT BOOKING</p>
+                      {room.nextBooking ? (
+                        <div>
+                          <p className="text-sm">{room.nextBooking.guestName}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {formatDate(room.nextBooking.checkIn)} - {formatDate(room.nextBooking.checkOut)}
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-sm">No upcoming bookings</p>
+                      )}
                     </div>
                   </div>
                 </div>
                 
                 <div className="flex justify-end gap-2 pt-4 mt-4 border-t">
-                  <Button size="sm" variant="outline" asChild>
-                    <Link to={`/rooms/edit/${room.id}`}>
-                      <Edit className="h-3.5 w-3.5 mr-1" />
-                      Edit
-                    </Link>
+                  <Button size="sm" variant="outline">
+                    <Edit className="h-3.5 w-3.5 mr-1" />
+                    Edit
                   </Button>
-                  <Button size="sm" asChild>
-                    <Link to={`/rooms/view/${room.id}`}>
-                      Manage
-                    </Link>
-                  </Button>
+                  <Button size="sm">Manage</Button>
                 </div>
               </div>
             </Card>
           ))}
-          {(!rooms || rooms.length === 0) && (
-            <div className="col-span-full text-center py-10 border rounded-md bg-muted/10">
-              <p className="text-muted-foreground">No rooms found</p>
-            </div>
-          )}
         </div>
       )}
     </div>

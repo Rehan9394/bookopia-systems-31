@@ -3,31 +3,19 @@ import React from 'react';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { RecentBookings } from '@/components/dashboard/RecentBookings';
 import { OccupancyChart } from '@/components/dashboard/OccupancyChart';
-import { TodayActivity } from '@/components/dashboard/TodayActivity';
-import { 
-  ArrowDownToLine, 
-  ArrowUpFromLine, 
-  BedDouble, 
-  CalendarCheck, 
-  DollarSign, 
-  Percent, 
-  AlertCircle
-} from 'lucide-react';
+import { ArrowDownToLine, ArrowUpFromLine, BedDouble, CalendarCheck, DollarSign, Percent, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Link } from 'react-router-dom';
-import { TodayCheckins } from '@/components/dashboard/TodayCheckins';
-import { TodayCheckouts } from '@/components/dashboard/TodayCheckouts';
 
 const Dashboard = () => {
   return (
-    <div className="animate-fade-in space-y-6">
-      <div>
+    <div className="animate-fade-in">
+      <div className="mb-8">
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <p className="text-muted-foreground mt-1">Welcome back to your hotel management dashboard.</p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard 
           title="Available Rooms" 
           value="12" 
@@ -61,70 +49,63 @@ const Dashboard = () => {
         />
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <div className="lg:col-span-2">
           <OccupancyChart />
         </div>
-        <TodayActivity />
+        <div>
+          <Card className="h-full">
+            <CardHeader className="pb-4">
+              <CardTitle>Quick Actions</CardTitle>
+              <CardDescription>Common tasks you can perform</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <Button className="w-full justify-start" size="lg">
+                  <CalendarCheck className="mr-2 h-5 w-5" />
+                  New Booking
+                </Button>
+                <Button className="w-full justify-start" size="lg" variant="outline">
+                  <Users className="mr-2 h-5 w-5" />
+                  Check-in Guest
+                </Button>
+                <Button className="w-full justify-start" size="lg" variant="outline">
+                  <ArrowUpFromLine className="mr-2 h-5 w-5" />
+                  Check-out Guest
+                </Button>
+                <Button className="w-full justify-start" size="lg" variant="outline">
+                  <DollarSign className="mr-2 h-5 w-5" />
+                  Record Payment
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 grid grid-cols-1 gap-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <TodayCheckins />
-            <TodayCheckouts />
-          </div>
-          <RecentBookings />
-        </div>
+      <div className="mb-8">
+        <RecentBookings />
+      </div>
+      
+      <div>
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle>Action Items</CardTitle>
-            <CardDescription>Tasks that need your attention</CardDescription>
+          <CardHeader className="pb-4">
+            <CardTitle>Room Cleaning Status</CardTitle>
+            <CardDescription>Overview of room cleaning status across all properties</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <div className="bg-red-50 text-red-800 p-3 rounded-md flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 mt-0.5" />
-                <div>
-                  <p className="font-medium">Maintenance Required</p>
-                  <p className="text-sm mt-1">Room 201 in Downtown Heights needs urgent maintenance</p>
-                  <Button size="sm" className="mt-2" variant="outline" asChild>
-                    <Link to="/rooms/view/3">View Room</Link>
-                  </Button>
-                </div>
+            <div className="flex gap-4 flex-wrap">
+              <div className="bg-green-100 text-green-800 px-4 py-3 rounded-md flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-green-500" />
+                <span className="font-medium">12 Clean</span>
               </div>
-              
-              <div className="p-3 border rounded-md">
-                <div className="flex items-center justify-between">
-                  <p className="font-medium">Pending Reviews</p>
-                  <span className="text-sm bg-primary/10 text-primary px-2.5 py-0.5 rounded-full">5</span>
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">5 guests have checked out without leaving a review</p>
-                <Button className="w-full mt-2" variant="outline" size="sm">Manage Reviews</Button>
+              <div className="bg-yellow-100 text-yellow-800 px-4 py-3 rounded-md flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-yellow-500" />
+                <span className="font-medium">5 In Progress</span>
               </div>
-              
-              <div className="p-3 border rounded-md">
-                <div className="flex items-center justify-between">
-                  <p className="font-medium">Low Inventory Items</p>
-                  <span className="text-sm bg-yellow-100 text-yellow-800 px-2.5 py-0.5 rounded-full">3</span>
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">3 items are running low and need to be restocked</p>
-                <Button className="w-full mt-2" variant="outline" size="sm">View Inventory</Button>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                <Button variant="outline" asChild className="h-auto py-2">
-                  <Link to="/bookings/new">
-                    <CalendarCheck className="h-4 w-4 mr-2" />
-                    New Booking
-                  </Link>
-                </Button>
-                <Button variant="outline" asChild className="h-auto py-2">
-                  <Link to="/settings">
-                    <DollarSign className="h-4 w-4 mr-2" />
-                    Finances
-                  </Link>
-                </Button>
+              <div className="bg-red-100 text-red-800 px-4 py-3 rounded-md flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-red-500" />
+                <span className="font-medium">3 Needs Cleaning</span>
               </div>
             </div>
           </CardContent>
