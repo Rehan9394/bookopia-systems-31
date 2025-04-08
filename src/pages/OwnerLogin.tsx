@@ -11,40 +11,38 @@ import {
   CardTitle 
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Link, useNavigate } from 'react-router-dom';
-import { useUsers } from '@/hooks/useUsers';
 import { toast } from '@/hooks/use-toast';
+import { useOwners } from '@/hooks/useOwners';
 
-const Login = () => {
-  const [staffEmail, setStaffEmail] = useState('');
-  const [staffPassword, setStaffPassword] = useState('');
+const OwnerLogin = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { data: users } = useUsers();
+  const { data: owners } = useOwners();
 
-  const handleStaffLogin = (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     // This is a mockup authentication for demo purposes
     // In a real app, this would be handled by a proper auth service
     setTimeout(() => {
-      const foundUser = users?.find(user => user.email === staffEmail);
+      const foundOwner = owners?.find(owner => owner.email === email);
       
-      if (foundUser) {
-        // Store user info in localStorage for this demo
-        localStorage.setItem('staffLoggedIn', 'true');
-        localStorage.setItem('userId', foundUser.id);
-        localStorage.setItem('userName', foundUser.name);
-        localStorage.setItem('userRole', foundUser.role);
+      if (foundOwner) {
+        // Store owner info in localStorage for this demo
+        localStorage.setItem('ownerLoggedIn', 'true');
+        localStorage.setItem('ownerId', foundOwner.id);
+        localStorage.setItem('ownerName', foundOwner.name);
         
         toast({
           title: 'Login successful',
-          description: `Welcome back, ${foundUser.name}!`,
+          description: `Welcome back, ${foundOwner.name}!`,
         });
         
-        navigate('/');
+        navigate('/owner/dashboard');
       } else {
         toast({
           title: 'Login failed',
@@ -58,65 +56,67 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 animate-fade-in">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 animate-fade-in bg-background">
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold mb-2">Hotel Manager</h1>
-        <p className="text-muted-foreground">Your complete hotel management solution</p>
+        <p className="text-muted-foreground">Property Owner Portal</p>
       </div>
       
-      <Card className="border-none shadow-lg w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Staff Login</CardTitle>
-          <CardDescription className="text-center">Enter your credentials to access the system</CardDescription>
+      <Card className="w-full max-w-md border-none shadow-lg">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl text-center">Owner Login</CardTitle>
+          <CardDescription className="text-center">
+            Access your property dashboard
+          </CardDescription>
         </CardHeader>
-        <form onSubmit={handleStaffLogin}>
+        <form onSubmit={handleLogin}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="staff-email">Email</Label>
+              <Label htmlFor="email">Email</Label>
               <Input 
-                id="staff-email" 
+                id="email" 
                 type="email" 
-                placeholder="your.email@example.com"
-                value={staffEmail}
-                onChange={(e) => setStaffEmail(e.target.value)}
+                placeholder="your.email@example.com" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="staff-password">Password</Label>
+                <Label htmlFor="password">Password</Label>
                 <Link to="/forgot-password" className="text-sm text-primary hover:underline">
                   Forgot password?
                 </Link>
               </div>
               <Input 
-                id="staff-password" 
+                id="password" 
                 type="password"
-                value={staffPassword}
-                onChange={(e) => setStaffPassword(e.target.value)}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)} 
                 required
               />
             </div>
           </CardContent>
           <CardFooter>
             <Button 
-              type="submit" 
-              className="w-full"
+              type="submit"
+              className="w-full" 
               disabled={isLoading}
             >
-              {isLoading ? 'Logging in...' : 'Login to Dashboard'}
+              {isLoading ? 'Logging in...' : 'Login to Owner Portal'}
             </Button>
           </CardFooter>
         </form>
       </Card>
       
       <p className="mt-4 text-center text-sm">
-        <Link to="/owner/login" className="text-primary hover:underline">
-          Owner Login
+        <Link to="/login" className="text-primary hover:underline">
+          Staff Login
         </Link>
       </p>
     </div>
   );
 };
 
-export default Login;
+export default OwnerLogin;

@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
+import { OwnerLayout } from "@/components/layout/OwnerLayout";
 import Dashboard from "./pages/Dashboard";
 import Bookings from "./pages/Bookings";
 import BookingView from "./pages/BookingView";
@@ -27,6 +28,12 @@ import Reports from "./pages/Reports";
 import AuditLogs from "./pages/AuditLogs";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
+import OwnerLogin from "./pages/OwnerLogin";
+import OwnerDashboard from "./pages/OwnerDashboard";
+import OwnerBookings from "./pages/OwnerBookings";
+import OwnerAvailability from "./pages/OwnerAvailability";
+import OwnerCleaningStatus from "./pages/OwnerCleaningStatus";
+import OwnerReports from "./pages/OwnerReports";
 import NotFound from "./pages/NotFound";
 import Profile from "./pages/Profile";
 
@@ -56,6 +63,9 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/owner/login" element={<OwnerLogin />} />
+          
+          {/* Staff routes */}
           <Route path="/" element={<MainLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="profile" element={<Profile />} />
@@ -85,6 +95,16 @@ const App = () => (
             <Route path="audit" element={<AuditLogs />} />
             <Route path="settings" element={<Settings />} />
           </Route>
+          
+          {/* Owner routes */}
+          <Route path="/owner" element={<OwnerLayout />}>
+            <Route path="dashboard" element={<OwnerDashboard />} />
+            <Route path="bookings" element={<OwnerBookings />} />
+            <Route path="availability" element={<OwnerAvailability />} />
+            <Route path="cleaning" element={<OwnerCleaningStatus />} />
+            <Route path="reports" element={<OwnerReports />} />
+          </Route>
+          
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
