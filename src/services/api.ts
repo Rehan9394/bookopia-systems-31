@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { 
   Room, 
@@ -20,7 +19,10 @@ export const fetchRooms = async (): Promise<Room[]> => {
     throw error;
   }
   
-  return data || [];
+  return (data || []).map(room => ({
+    ...room,
+    status: room.status as 'available' | 'occupied' | 'maintenance'
+  })) as Room[];
 };
 
 export const fetchRoomById = async (id: string): Promise<Room> => {
@@ -35,7 +37,10 @@ export const fetchRoomById = async (id: string): Promise<Room> => {
     throw error;
   }
   
-  return data;
+  return {
+    ...data,
+    status: data.status as 'available' | 'occupied' | 'maintenance'
+  } as Room;
 };
 
 export const fetchRoomByNumber = async (number: string): Promise<Room> => {
@@ -50,7 +55,10 @@ export const fetchRoomByNumber = async (number: string): Promise<Room> => {
     throw error;
   }
   
-  return data;
+  return {
+    ...data,
+    status: data.status as 'available' | 'occupied' | 'maintenance'
+  } as Room;
 };
 
 export const fetchBookings = async (): Promise<Booking[]> => {

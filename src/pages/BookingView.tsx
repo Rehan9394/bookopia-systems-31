@@ -38,8 +38,8 @@ const BookingView = () => {
     );
   }
 
-  // In a real app, pass the booking data to the BookingDetails component
-  return <BookingDetails bookingData={booking} />;
+  // Remove the bookingData prop since BookingDetails doesn't expect it
+  return <BookingDetails />;
 };
 
 export default BookingView;

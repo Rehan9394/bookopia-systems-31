@@ -27,6 +27,7 @@ export type Booking = {
   special_requests: string | null;
   created_at: string;
   updated_at: string;
+  rooms?: any; // Adding rooms property that comes from join queries
 };
 
 export type User = {
