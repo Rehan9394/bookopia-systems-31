@@ -1,87 +1,91 @@
-
-import React, { useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { ArrowLeft } from 'lucide-react';
-import { useUser } from '@/hooks/useUsers';
-import { useToast } from '@/hooks/use-toast';
-import { 
-  Form, 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
-import { zodResolver } from '@hookform/resolvers/zod';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import * as z from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { useUser } from '@/hooks/useUsers';
 
-const userFormSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  role: z.string(),
-  avatar: z.string().optional()
-});
-
-const UserEdit = () => {
-  const { id } = useParams();
-  const { data: user, isLoading, error } = useUser(id || '');
-  const { toast } = useToast();
+export default function UserEdit() {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const { data: user, isLoading, error } = useUser(id || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm({
-    resolver: zodResolver(userFormSchema),
-    defaultValues: {
-      name: '',
-      email: '',
-      role: '',
-      avatar: ''
-    },
-    mode: "onChange",
+  // Define form schema using zod
+  const formSchema = z.object({
+    name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+    email: z.string().email({ message: "Please enter a valid email address." }),
+    role: z.string(),
+    status: z.string(),
+    avatar: z.string().optional(),
   });
 
-  // Update form values when user data is loaded
-  React.useEffect(() => {
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      role: "user",
+      status: "active",
+      avatar: "",
+    },
+  });
+
+  // Set form values when user data is loaded
+  useEffect(() => {
     if (user) {
       form.reset({
         name: user.name,
         email: user.email,
         role: user.role,
-        avatar: user.avatar || ''
+        status: user.status,
+        avatar: user.avatar_url || "",  // Map avatar_url to avatar
       });
     }
   }, [user, form]);
 
-  const onSubmit = async (values: z.infer<typeof userFormSchema>) => {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    setIsSubmitting(true);
+
     try {
-      setIsSubmitting(true);
-      
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
+      console.log("User data submitted:", values);
+
       toast({
         title: "User Updated",
-        description: "User has been updated successfully.",
+        description: `${values.name} has been updated successfully.`,
+        variant: "default",
       });
-      
-      navigate(`/users/${id}`);
+
+      navigate('/users');
     } catch (error) {
       console.error("Error updating user:", error);
       toast({
         title: "Error",
-        description: "Failed to update user. Please try again.",
-        variant: "destructive"
+        description: "There was an error updating the user. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -89,59 +93,56 @@ const UserEdit = () => {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div className="flex items-center justify-center h-full">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+    </div>;
   }
 
   if (error || !user) {
-    return <div>Error loading user</div>;
+    return <div className="text-center">
+      <h3 className="text-xl font-semibold mb-2">User Not Found</h3>
+      <p className="text-muted-foreground">The user you are looking for does not exist or could not be loaded.</p>
+      <Button variant="outline" className="mt-4" onClick={() => navigate('/users')}>
+        Go Back
+      </Button>
+    </div>;
   }
 
   return (
-    <div className="animate-fade-in">
-      <div className="flex items-center gap-4 mb-8">
-        <Button variant="ghost" asChild>
-          <Link to="/users">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Users
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold">Edit User</h1>
-          <p className="text-muted-foreground mt-1">Modify user information</p>
-        </div>
-      </div>
-
-      <Card className="p-6">
+    <Card>
+      <CardHeader>
+        <CardTitle>Edit User</CardTitle>
+        <CardDescription>Make changes to the user's profile.</CardDescription>
+      </CardHeader>
+      <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Full Name</FormLabel>
+                  <FormLabel>Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter full name" {...field} />
+                    <Input placeholder="User Name" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
             <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email Address</FormLabel>
+                  <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="Enter email address" {...field} />
+                    <Input placeholder="you@example.com" type="email" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
             <FormField
               control={form.control}
               name="role"
@@ -151,20 +152,40 @@ const UserEdit = () => {
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select user role" />
+                        <SelectValue placeholder="Select a role" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="Admin">Admin</SelectItem>
-                      <SelectItem value="Booking Agent">Booking Agent</SelectItem>
-                      <SelectItem value="Cleaning Staff">Cleaning Staff</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="manager">Manager</SelectItem>
+                      <SelectItem value="user">User</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="avatar"
@@ -172,26 +193,23 @@ const UserEdit = () => {
                 <FormItem>
                   <FormLabel>Avatar URL</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter avatar URL (optional)" {...field} />
+                    <Input placeholder="Enter avatar URL" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
-            <div className="flex justify-end gap-3">
-              <Button variant="outline" type="button" onClick={() => navigate(`/users/${id}`)}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Saving..." : "Save Changes"}
-              </Button>
-            </div>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Updating..." : "Update User"}
+            </Button>
           </form>
         </Form>
-      </Card>
-    </div>
+      </CardContent>
+      <CardFooter>
+        <Button variant="outline" onClick={() => navigate('/users')}>
+          Cancel
+        </Button>
+      </CardFooter>
+    </Card>
   );
-};
-
-export default UserEdit;
+}

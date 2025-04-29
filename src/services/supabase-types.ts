@@ -13,6 +13,7 @@ export type Room = {
   created_at: string;
   updated_at: string;
   property?: string; // Adding property field as it's used in RoomList component
+  property_id?: string; // Adding property_id field 
   maintenance?: boolean; // Adding maintenance field used in other components
   lastCleaned?: string; // Adding lastCleaned field
   nextCheckIn?: string | null; // Adding nextCheckIn field
@@ -44,6 +45,8 @@ export type User = {
   last_active: string | null;
   created_at: string;
   updated_at: string;
+  // Add alias for avatar_url to support code that uses 'avatar'
+  avatar?: string | null;
 };
 
 export type Owner = {
@@ -63,12 +66,13 @@ export type Expense = {
   date: string;
   category: string;
   property: string;
+  property_id?: string;
   vendor: string | null;
-  paymentMethod: string | null;
+  paymentMethod?: string | null;
+  payment_method: string;
   status: string;
   notes: string | null;
   receipt_url?: string | null;
-  payment_method?: string;
   owner?: string | null;
   owner_id?: string | null;
   created_at: string;

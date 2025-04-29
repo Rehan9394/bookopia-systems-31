@@ -18,7 +18,15 @@ export const useExpenses = () => {
         throw error;
       }
       
-      return data || [];
+      // Map the database fields to the Expense type
+      const expenses: Expense[] = (data || []).map(expense => ({
+        ...expense,
+        property: expense.property_id || '',
+        paymentMethod: expense.payment_method,
+        owner: expense.owner_id
+      }));
+      
+      return expenses;
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
@@ -46,7 +54,9 @@ export const useExpense = (id: string) => {
       // Convert the data to match expected format
       const expenseData: Expense = {
         ...data,
+        property: data.property_id || '',
         paymentMethod: data.payment_method,
+        owner: data.owner_id
       };
       
       return expenseData;
@@ -64,9 +74,17 @@ export const useCreateExpense = () => {
     mutationFn: async (expense: Partial<Expense>) => {
       // Format the data for Supabase
       const supabaseData = {
-        ...expense,
-        payment_method: expense.paymentMethod,
+        description: expense.description,
+        amount: expense.amount,
+        date: expense.date,
+        category: expense.category,
+        property_id: expense.property_id || expense.property,
+        vendor: expense.vendor || null,
+        payment_method: expense.paymentMethod || expense.payment_method,
         receipt_url: expense.receipt_url || null,
+        notes: expense.notes || null,
+        status: expense.status || 'pending',
+        owner_id: expense.owner_id || expense.owner || null
       };
       
       const { data, error } = await supabase
@@ -107,9 +125,17 @@ export const useUpdateExpense = () => {
     mutationFn: async ({ id, ...expense }: Partial<Expense> & { id: string }) => {
       // Format the data for Supabase
       const supabaseData = {
-        ...expense,
-        payment_method: expense.paymentMethod,
+        description: expense.description,
+        amount: expense.amount,
+        date: expense.date,
+        category: expense.category,
+        property_id: expense.property_id || expense.property,
+        vendor: expense.vendor || null,
+        payment_method: expense.paymentMethod || expense.payment_method,
         receipt_url: expense.receipt_url || null,
+        notes: expense.notes || null,
+        status: expense.status || 'pending',
+        owner_id: expense.owner_id || expense.owner || null
       };
       
       const { data, error } = await supabase
