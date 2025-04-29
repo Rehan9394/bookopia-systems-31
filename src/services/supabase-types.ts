@@ -1,3 +1,4 @@
+
 export type Room = {
   id: string;
   number: string;
@@ -61,8 +62,14 @@ export type Expense = {
   amount: number;
   date: string;
   category: string;
-  payment_method: string;
+  property: string;
+  vendor: string | null;
+  paymentMethod: string | null;
   status: string;
+  notes: string | null;
+  receipt_url?: string | null;
+  payment_method?: string;
+  owner?: string | null;
   created_at: string;
   updated_at: string;
 };
