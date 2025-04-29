@@ -72,6 +72,29 @@ const OwnerAdd = () => {
     citizenship: '',
   });
 
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
+  };
+
+  const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setConfirmPassword(e.target.value);
+  };
+
+  const validatePasswords = () => {
+    if (password !== confirmPassword) {
+      toast({
+        title: 'Password Mismatch',
+        description: 'Password and Confirm Password do not match.',
+        status: 'error',
+      });
+      return false;
+    }
+    return true;
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     
@@ -151,7 +174,8 @@ const OwnerAdd = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // In a real app, this would send the data to an API
+    if (!validatePasswords()) return;
+
     console.log('Submitting owner:', formData);
     
     toast({
@@ -356,6 +380,33 @@ const OwnerAdd = () => {
                       placeholder="Additional notes about this owner"
                       className="min-h-[100px]"
                     />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="password">Password*</Label>
+                      <Input
+                        id="password"
+                        name="password"
+                        type="password"
+                        value={password}
+                        onChange={handlePasswordChange}
+                        placeholder="Enter password"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword">Confirm Password*</Label>
+                      <Input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type="password"
+                        value={confirmPassword}
+                        onChange={handleConfirmPasswordChange}
+                        placeholder="Confirm password"
+                        required
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
