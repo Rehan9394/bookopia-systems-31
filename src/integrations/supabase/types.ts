@@ -167,6 +167,7 @@ export type Database = {
           description: string
           id: string
           notes: string | null
+          owner_id: string | null
           payment_method: string
           property_id: string | null
           receipt_url: string | null
@@ -182,6 +183,7 @@ export type Database = {
           description: string
           id?: string
           notes?: string | null
+          owner_id?: string | null
           payment_method: string
           property_id?: string | null
           receipt_url?: string | null
@@ -197,6 +199,7 @@ export type Database = {
           description?: string
           id?: string
           notes?: string | null
+          owner_id?: string | null
           payment_method?: string
           property_id?: string | null
           receipt_url?: string | null
@@ -205,6 +208,13 @@ export type Database = {
           vendor?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "expenses_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "expenses_property_id_fkey"
             columns: ["property_id"]
@@ -394,6 +404,47 @@ export type Database = {
           },
         ]
       }
+      room_status: {
+        Row: {
+          created_at: string
+          id: string
+          last_cleaned: string | null
+          next_cleaning: string | null
+          notes: string | null
+          room_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_cleaned?: string | null
+          next_cleaning?: string | null
+          notes?: string | null
+          room_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_cleaned?: string | null
+          next_cleaning?: string | null
+          notes?: string | null
+          room_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_status_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       room_types: {
         Row: {
           amenities: string[] | null
@@ -498,6 +549,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          id: string
+          last_active: string | null
+          name: string
+          role: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          id: string
+          last_active?: string | null
+          name: string
+          role?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          last_active?: string | null
+          name?: string
+          role?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

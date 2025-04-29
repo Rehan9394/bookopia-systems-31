@@ -70,6 +70,7 @@ export type Expense = {
   receipt_url?: string | null;
   payment_method?: string;
   owner?: string | null;
+  owner_id?: string | null;
   created_at: string;
   updated_at: string;
 };

@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowLeft } from 'lucide-react';
-import { useExpense } from '@/hooks/useExpenses';
+import { useExpense, useUpdateExpense } from '@/hooks/useExpenses';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Form, 
@@ -25,6 +26,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
+import { useOwners } from '@/hooks/useOwners';
 
 const expenseFormSchema = z.object({
   description: z.string().min(1, "Description is required"),
@@ -35,12 +37,15 @@ const expenseFormSchema = z.object({
   vendor: z.string().optional(),
   paymentMethod: z.string().optional(),
   notes: z.string().optional(),
-  owner: z.string().optional()
+  owner: z.string().optional(),
+  owner_id: z.string().optional()
 });
 
 const ExpenseEdit = () => {
   const { id } = useParams();
   const { data: expense, isLoading, error } = useExpense(id || '');
+  const { data: owners, isLoading: isLoadingOwners } = useOwners();
+  const updateExpense = useUpdateExpense();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -56,7 +61,8 @@ const ExpenseEdit = () => {
       vendor: '',
       paymentMethod: '',
       notes: '',
-      owner: ''
+      owner: '',
+      owner_id: ''
     },
     mode: "onChange",
   });
@@ -73,7 +79,8 @@ const ExpenseEdit = () => {
         vendor: expense.vendor || '',
         paymentMethod: expense.paymentMethod || '',
         notes: expense.notes || '',
-        owner: expense.owner || ''
+        owner: expense.owner || '',
+        owner_id: expense.owner_id || ''
       });
     }
   }, [expense, form]);
@@ -82,12 +89,9 @@ const ExpenseEdit = () => {
     try {
       setIsSubmitting(true);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: "Expense Updated",
-        description: "Expense has been updated successfully.",
+      await updateExpense.mutateAsync({
+        id: id || '',
+        ...values
       });
       
       navigate(`/expenses/${id}`);

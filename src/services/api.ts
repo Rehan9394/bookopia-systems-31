@@ -1,6 +1,5 @@
-
-// Import the supabase client but temporarily disable it
-// import { supabase } from "@/integrations/supabase/client";
+// Import the supabase client
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Room, 
   Booking, 
@@ -11,9 +10,7 @@ import {
   PropertyOwnership
 } from './supabase-types';
 
-// Temporarily disabled because of type errors
-// Will enable once we have proper Supabase type definitions
-/*
+// Fetch rooms from Supabase
 export const fetchRooms = async (): Promise<Room[]> => {
   const { data, error } = await supabase
     .from('rooms')
@@ -31,220 +28,148 @@ export const fetchRooms = async (): Promise<Room[]> => {
 };
 
 export const fetchRoomById = async (id: string): Promise<Room> => {
-  const { data, error } = await supabase
-    .from('rooms')
-    .select('*')
-    .eq('id', id)
-    .single();
-  
-  if (error) {
-    console.error(`Error fetching room with ID ${id}:`, error);
+  try {
+    const { data, error } = await supabase
+      .from('rooms')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) {
+      console.error(`Error fetching room with ID ${id}:`, error);
+      throw error;
+    }
+    
+    if (!data) {
+      throw new Error(`Room with ID ${id} not found`);
+    }
+    
+    return {
+      ...data,
+      status: data.status as 'available' | 'occupied' | 'maintenance'
+    } as Room;
+  } catch (error) {
+    console.error(`Error in fetchRoomById:`, error);
     throw error;
   }
-  
-  return {
-    ...data,
-    status: data.status as 'available' | 'occupied' | 'maintenance'
-  } as Room;
 };
 
 export const fetchRoomByNumber = async (number: string): Promise<Room> => {
-  const { data, error } = await supabase
-    .from('rooms')
-    .select('*')
-    .eq('number', number)
-    .single();
-  
-  if (error) {
-    console.error(`Error fetching room with number ${number}:`, error);
+  try {
+    const { data, error } = await supabase
+      .from('rooms')
+      .select('*')
+      .eq('number', number)
+      .single();
+    
+    if (error) {
+      console.error(`Error fetching room with number ${number}:`, error);
+      throw error;
+    }
+    
+    if (!data) {
+      throw new Error(`Room with number ${number} not found`);
+    }
+    
+    return {
+      ...data,
+      status: data.status as 'available' | 'occupied' | 'maintenance'
+    } as Room;
+  } catch (error) {
+    console.error(`Error in fetchRoomByNumber:`, error);
     throw error;
   }
-  
-  return {
-    ...data,
-    status: data.status as 'available' | 'occupied' | 'maintenance'
-  } as Room;
 };
 
 export const fetchBookings = async (): Promise<Booking[]> => {
-  const { data, error } = await supabase
-    .from('bookings')
-    .select('*, rooms(number, property:type)');
-  
-  if (error) {
-    console.error('Error fetching bookings:', error);
+  try {
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('*, rooms(number, property:type)');
+    
+    if (error) {
+      console.error('Error fetching bookings:', error);
+      throw error;
+    }
+    
+    return data || [];
+  } catch (error) {
+    console.error(`Error in fetchBookings:`, error);
     throw error;
   }
-  
-  return data || [];
 };
 
 export const fetchBookingById = async (id: string): Promise<Booking> => {
-  const { data, error } = await supabase
-    .from('bookings')
-    .select('*, rooms(number, property:type)')
-    .eq('id', id)
-    .single();
-  
-  if (error) {
-    console.error(`Error fetching booking with ID ${id}:`, error);
+  try {
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('*, rooms(number, property:type)')
+      .eq('id', id)
+      .single();
+    
+    if (error) {
+      console.error(`Error fetching booking with ID ${id}:`, error);
+      throw error;
+    }
+    
+    if (!data) {
+      throw new Error(`Booking with ID ${id} not found`);
+    }
+    
+    return data;
+  } catch (error) {
+    console.error(`Error in fetchBookingById:`, error);
     throw error;
   }
-  
-  return data;
 };
 
+// Add additional API functions for other entities
 export const fetchTodayCheckins = async (): Promise<Booking[]> => {
-  const today = new Date().toISOString().split('T')[0];
-  
-  const { data, error } = await supabase
-    .from('bookings')
-    .select('*, rooms(number, property:type)')
-    .eq('check_in', today)
-    .eq('status', 'confirmed');
-  
-  if (error) {
-    console.error('Error fetching today\'s check-ins:', error);
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('*, rooms(number, property:type)')
+      .eq('check_in', today)
+      .eq('status', 'confirmed');
+    
+    if (error) {
+      console.error('Error fetching today\'s check-ins:', error);
+      throw error;
+    }
+    
+    return data || [];
+  } catch (error) {
+    console.error(`Error in fetchTodayCheckins:`, error);
     throw error;
   }
-  
-  return data || [];
 };
 
 export const fetchTodayCheckouts = async (): Promise<Booking[]> => {
-  const today = new Date().toISOString().split('T')[0];
-  
-  const { data, error } = await supabase
-    .from('bookings')
-    .select('*, rooms(number, property:type)')
-    .eq('check_out', today)
-    .eq('status', 'checked-in');
-  
-  if (error) {
-    console.error('Error fetching today\'s check-outs:', error);
-    throw error;
-  }
-  
-  return data || [];
-};
-
-export const fetchUsers = async (): Promise<User[]> => {
-  const { data, error } = await supabase
-    .from('users')
-    .select('*');
-  
-  if (error) {
-    console.error('Error fetching users:', error);
-    throw error;
-  }
-  
-  return data || [];
-};
-
-export const fetchOwners = async (): Promise<Owner[]> => {
-  const { data, error } = await supabase
-    .from('owners')
-    .select('*');
-  
-  if (error) {
-    console.error('Error fetching owners:', error);
-    throw error;
-  }
-  
-  return data || [];
-};
-
-export const fetchExpenses = async (): Promise<Expense[]> => {
-  const { data, error } = await supabase
-    .from('expenses')
-    .select('*')
-    .order('date', { ascending: false });
-  
-  if (error) {
-    console.error('Error fetching expenses:', error);
-    throw error;
-  }
-  
-  return data || [];
-};
-
-export const fetchCleaningTasks = async (): Promise<CleaningTask[]> => {
-  const { data, error } = await supabase
-    .from('cleaning_tasks')
-    .select('*, rooms(number, property:type), users(name)');
-  
-  if (error) {
-    console.error('Error fetching cleaning tasks:', error);
-    throw error;
-  }
-  
-  return data || [];
-};
-
-export const fetchPropertyOwnership = async (): Promise<PropertyOwnership[]> => {
-  const { data, error } = await supabase
-    .from('property_ownership')
-    .select('*, rooms(number), owners(name)');
-  
-  if (error) {
-    console.error('Error fetching property ownership:', error);
-    throw error;
-  }
-  
-  return data || [];
-};
-
-export const updateBookingStatus = async (id: string, status: string): Promise<void> => {
-  const { error } = await supabase
-    .from('bookings')
-    .update({ status })
-    .eq('id', id);
-  
-  if (error) {
-    console.error(`Error updating booking status for ID ${id}:`, error);
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    
+    const { data, error } = await supabase
+      .from('bookings')
+      .select('*, rooms(number, property:type)')
+      .eq('check_out', today)
+      .eq('status', 'checked-in');
+    
+    if (error) {
+      console.error('Error fetching today\'s check-outs:', error);
+      throw error;
+    }
+    
+    return data || [];
+  } catch (error) {
+    console.error(`Error in fetchTodayCheckouts:`, error);
     throw error;
   }
 };
 
-export const updateRoomStatus = async (id: string, status: string): Promise<void> => {
-  const { error } = await supabase
-    .from('rooms')
-    .update({ status })
-    .eq('id', id);
-  
-  if (error) {
-    console.error(`Error updating room status for ID ${id}:`, error);
-    throw error;
-  }
-};
-
-export const updateCleaningTaskStatus = async (id: string, status: string): Promise<void> => {
-  const { error } = await supabase
-    .from('cleaning_tasks')
-    .update({ status })
-    .eq('id', id);
-  
-  if (error) {
-    console.error(`Error updating cleaning task status for ID ${id}:`, error);
-    throw error;
-  }
-};
-*/
-
-// Temporarily providing empty functions to avoid errors elsewhere in the codebase
-export const fetchRooms = async (): Promise<Room[]> => { return []; };
-export const fetchRoomById = async (id: string): Promise<Room> => { 
-  throw new Error('Not implemented'); 
-};
-export const fetchRoomByNumber = async (number: string): Promise<Room> => { 
-  throw new Error('Not implemented'); 
-};
-export const fetchBookings = async (): Promise<Booking[]> => { return []; };
-export const fetchBookingById = async (id: string): Promise<Booking> => { 
-  throw new Error('Not implemented'); 
-};
-export const fetchTodayCheckins = async (): Promise<Booking[]> => { return []; };
-export const fetchTodayCheckouts = async (): Promise<Booking[]> => { return []; };
+// For now, providing empty implementations to avoid TypeScript errors
+// These will be filled in as needed by future changes
 export const fetchUsers = async (): Promise<User[]> => { return []; };
 export const fetchOwners = async (): Promise<Owner[]> => { return []; };
 export const fetchExpenses = async (): Promise<Expense[]> => { return []; };
