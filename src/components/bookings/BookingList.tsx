@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,6 +14,7 @@ import { Link } from 'react-router-dom';
 import { useBookings } from '@/hooks/useBookings';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { DateRange } from 'react-day-picker';
 
 function formatDate(dateString: string) {
   try {
@@ -44,11 +44,55 @@ function getStatusBadge(status: string) {
 interface BookingListProps {
   view: 'grid' | 'list';
   onViewChange: (view: 'grid' | 'list') => void;
+  searchQuery?: string;
+  filterValue?: string;
+  dateRange?: DateRange;
 }
 
-export function BookingList({ view, onViewChange }: BookingListProps) {
+export function BookingList({ 
+  view, 
+  onViewChange,
+  searchQuery = '',
+  filterValue = 'all',
+  dateRange
+}: BookingListProps) {
   const { data: bookings, isLoading, error } = useBookings();
   const { toast } = useToast();
+
+  // Apply filters to bookings
+  const filteredBookings = useMemo(() => {
+    if (!bookings) return [];
+    
+    return bookings.filter(booking => {
+      // Apply search filter
+      const searchLower = searchQuery.toLowerCase();
+      const matchesSearch = 
+        !searchQuery || 
+        booking.guest_name.toLowerCase().includes(searchLower) ||
+        booking.booking_number.toLowerCase().includes(searchLower) ||
+        (booking.rooms as any)?.number?.toLowerCase().includes(searchLower) ||
+        (booking.rooms as any)?.property?.toLowerCase().includes(searchLower);
+      
+      // Apply status filter
+      const matchesStatus = filterValue === 'all' || booking.status === filterValue;
+      
+      // Apply date filter
+      let matchesDate = true;
+      if (dateRange?.from) {
+        const bookingCheckIn = new Date(booking.check_in);
+        const bookingCheckOut = new Date(booking.check_out);
+        const filterFrom = dateRange.from;
+        const filterTo = dateRange.to || dateRange.from;
+
+        // Check if the booking dates overlap with the filter dates
+        matchesDate = 
+          (bookingCheckIn <= filterTo && 
+          (dateRange.to ? bookingCheckOut >= filterFrom : true));
+      }
+      
+      return matchesSearch && matchesStatus && matchesDate;
+    });
+  }, [bookings, searchQuery, filterValue, dateRange]);
 
   if (isLoading) {
     return (
@@ -94,11 +138,13 @@ export function BookingList({ view, onViewChange }: BookingListProps) {
                 <th className="text-left font-medium px-6 py-3">Check Out</th>
                 <th className="text-left font-medium px-6 py-3">Status</th>
                 <th className="text-left font-medium px-6 py-3">Amount</th>
+                <th className="text-left font-medium px-6 py-3">Amount Paid</th>
+                <th className="text-left font-medium px-6 py-3">Remaining Amount</th>
                 <th className="text-left font-medium px-6 py-3">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {bookings && bookings.map((booking) => {
+              {filteredBookings.map((booking) => {
                 const room = booking.rooms as any;
                 return (
                   <tr key={booking.id} className="hover:bg-muted/50 transition-colors">
@@ -113,6 +159,8 @@ export function BookingList({ view, onViewChange }: BookingListProps) {
                     <td className="px-6 py-4">{formatDate(booking.check_out)}</td>
                     <td className="px-6 py-4">{getStatusBadge(booking.status)}</td>
                     <td className="px-6 py-4">${booking.amount}</td>
+                    <td className="px-6 py-4">${booking.amountPaid?.toFixed(2) || '0.00'}</td>
+                    <td className="px-6 py-4">${booking.remainingAmount?.toFixed(2) || '0.00'}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">
                         <Button size="sm" variant="ghost" asChild>
@@ -141,7 +189,7 @@ export function BookingList({ view, onViewChange }: BookingListProps) {
                               </DropdownMenuItem>
                             )}
                             <DropdownMenuItem asChild>
-                              <Link to={`/bookings/edit/${booking.id}`}>Edit</Link>
+                              <Link to={`/bookings/${booking.id}/edit`}>Edit</Link>
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -150,9 +198,9 @@ export function BookingList({ view, onViewChange }: BookingListProps) {
                   </tr>
                 );
               })}
-              {(!bookings || bookings.length === 0) && (
+              {(!filteredBookings || filteredBookings.length === 0) && (
                 <tr>
-                  <td colSpan={7} className="px-6 py-8 text-center text-muted-foreground">
+                  <td colSpan={9} className="px-6 py-8 text-center text-muted-foreground">
                     No bookings found
                   </td>
                 </tr>
@@ -162,7 +210,7 @@ export function BookingList({ view, onViewChange }: BookingListProps) {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {bookings && bookings.map((booking) => {
+          {filteredBookings.map((booking) => {
             const room = booking.rooms as any;
             return (
               <Card key={booking.id} className="overflow-hidden hover:shadow-md transition-shadow">
@@ -215,7 +263,7 @@ export function BookingList({ view, onViewChange }: BookingListProps) {
                     
                     <div className="flex justify-end gap-2 border-t pt-4">
                       <Button size="sm" variant="outline" asChild>
-                        <Link to={`/bookings/edit/${booking.id}`}>
+                        <Link to={`/bookings/${booking.id}/edit`}>
                           <Edit className="h-3.5 w-3.5 mr-1" />
                           Edit
                         </Link>
@@ -231,7 +279,7 @@ export function BookingList({ view, onViewChange }: BookingListProps) {
               </Card>
             );
           })}
-          {(!bookings || bookings.length === 0) && (
+          {(!filteredBookings || filteredBookings.length === 0) && (
             <div className="col-span-full text-center py-10 border rounded-md bg-muted/10">
               <p className="text-muted-foreground">No bookings found</p>
             </div>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -269,7 +268,7 @@ const Owners = () => {
                         </Link>
                       </Button>
                       <Button variant="ghost" size="sm" asChild>
-                        <Link to={`/owners/edit/${owner.id}`}>
+                        <Link to={`/owners/${owner.id}/edit`}>
                           <Pencil className="h-4 w-4 mr-1" />
                           Edit
                         </Link>

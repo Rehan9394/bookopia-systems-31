@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -232,7 +231,7 @@ const Users = () => {
                           </Link>
                         </Button>
                         <Button variant="ghost" size="sm" asChild>
-                          <Link to={`/users/edit/${user.id}`}>
+                          <Link to={`/users/${user.id}/edit`}>
                             <Pencil className="h-4 w-4 mr-1" />
                             Edit
                           </Link>

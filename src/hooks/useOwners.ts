@@ -1,52 +1,51 @@
 
-import { useQuery } from '@tanstack/react-query';
-import { fetchOwners } from '@/services/api';
-import { Owner } from '@/services/supabase-types';
+import { owners } from "@/lib/mock-data";
+import { useQuery } from "@tanstack/react-query";
+
+export interface Owner {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  properties: number;
+  revenue: number;
+  occupancy: number;
+  avatar?: string;
+  paymentDetails: {
+    bank: string;
+    accountNumber: string;
+    routingNumber: string;
+  };
+  joinedDate: string;
+}
 
 export const useOwners = () => {
   return useQuery({
-    queryKey: ['owners'],
-    queryFn: fetchOwners
+    queryKey: ["owners"],
+    queryFn: async () => {
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return owners;
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };
 
-// Hook to get owner data for the logged-in owner
-export const useCurrentOwner = () => {
-  const ownerId = localStorage.getItem('ownerId');
-  const { data: owners } = useOwners();
-  
-  return {
-    data: owners?.find((owner: Owner) => owner.id === ownerId),
-    isLoading: !owners,
-  };
-};
-
-// Hook to get properties owned by the current owner
-export const useOwnerProperties = () => {
-  const ownerId = localStorage.getItem('ownerId');
-  
+export const useOwner = (id: string) => {
   return useQuery({
-    queryKey: ['ownerProperties', ownerId],
+    queryKey: ["owner", id],
     queryFn: async () => {
-      // In a real app, this would call an API endpoint
-      // For now, we'll return mock data
-      return [
-        {
-          id: '1',
-          name: 'Beachfront Villa',
-          rooms: 4,
-          location: 'Miami Beach, FL',
-          revenue: 5240,
-        },
-        {
-          id: '2',
-          name: 'Downtown Heights',
-          rooms: 3,
-          location: 'Seattle, WA',
-          revenue: 3150,
-        },
-      ];
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 300));
+      const owner = owners.find(o => o.id === id);
+      
+      if (!owner) {
+        throw new Error(`Owner with ID ${id} not found`);
+      }
+      
+      return owner;
     },
-    enabled: !!ownerId,
+    enabled: !!id,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };

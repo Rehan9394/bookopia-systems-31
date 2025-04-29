@@ -1,122 +1,120 @@
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Link, useNavigate } from 'react-router-dom';
-import { useUsers } from '@/hooks/useUsers';
-import { toast } from '@/hooks/use-toast';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from '@/hooks/use-auth';
 
-const Login = () => {
-  const [staffEmail, setStaffEmail] = useState('');
-  const [staffPassword, setStaffPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+export default function Login() {
+  const { login, isAuthenticated, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const { data: users } = useUsers();
+  const { toast } = useToast();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
+      navigate('/');
+    }
+  }, [isAuthenticated, authLoading, navigate]);
 
-  const handleStaffLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email || !password) {
+      toast({
+        title: "Error",
+        description: "Please enter both email and password",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsLoading(true);
-
-    // This is a mockup authentication for demo purposes
-    // In a real app, this would be handled by a proper auth service
-    setTimeout(() => {
-      const foundUser = users?.find(user => user.email === staffEmail);
-      
-      if (foundUser) {
-        // Store user info in localStorage for this demo
-        localStorage.setItem('staffLoggedIn', 'true');
-        localStorage.setItem('userId', foundUser.id);
-        localStorage.setItem('userName', foundUser.name);
-        localStorage.setItem('userRole', foundUser.role);
-        
-        toast({
-          title: 'Login successful',
-          description: `Welcome back, ${foundUser.name}!`,
-        });
-        
-        navigate('/');
-      } else {
-        toast({
-          title: 'Login failed',
-          description: 'Invalid email or password.',
-          variant: 'destructive',
-        });
-      }
-      
+    
+    try {
+      await login(email, password);
+      toast({
+        title: "Success!",
+        description: "You have successfully logged in."
+      });
+      navigate('/');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Invalid credentials. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 animate-fade-in">
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold mb-2">Hotel Manager</h1>
-        <p className="text-muted-foreground">Your complete hotel management solution</p>
+  // Show loading state while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-muted">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
-      
-      <Card className="border-none shadow-lg w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Staff Login</CardTitle>
-          <CardDescription className="text-center">Enter your credentials to access the system</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleStaffLogin}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="staff-email">Email</Label>
-              <Input 
-                id="staff-email" 
-                type="email" 
-                placeholder="your.email@example.com"
-                value={staffEmail}
-                onChange={(e) => setStaffEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="staff-password">Password</Label>
-                <Link to="/forgot-password" className="text-sm text-primary hover:underline">
-                  Forgot password?
-                </Link>
-              </div>
-              <Input 
-                id="staff-password" 
-                type="password"
-                value={staffPassword}
-                onChange={(e) => setStaffPassword(e.target.value)}
-                required
-              />
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button 
-              type="submit" 
-              className="w-full"
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-muted">
+      <div className="w-full max-w-md p-8 bg-background rounded-xl shadow-lg">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-primary">Hotel Manager</h1>
+          <p className="text-muted-foreground mt-2">Staff Login Portal</p>
+        </div>
+        
+        <form onSubmit={handleLogin} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input 
+              id="email" 
+              type="email" 
+              placeholder="you@example.com" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
-            >
-              {isLoading ? 'Logging in...' : 'Login to Dashboard'}
-            </Button>
-          </CardFooter>
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password</Label>
+              <Link to="/forgot-password" className="text-xs text-primary hover:underline">
+                Forgot password?
+              </Link>
+            </div>
+            <Input 
+              id="password" 
+              type="password" 
+              placeholder="••••••••" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={isLoading}
+            />
+          </div>
+          
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Logging in..." : "Log in"}
+          </Button>
         </form>
-      </Card>
-      
-      <p className="mt-4 text-center text-sm">
-        <Link to="/owner/login" className="text-primary hover:underline">
-          Owner Login
-        </Link>
-      </p>
+        
+        <div className="mt-6 text-center text-sm">
+          <p className="text-muted-foreground">
+            Property owner? {" "}
+            <Link to="/owner/login" className="text-primary hover:underline">
+              Login to Owner Portal
+            </Link>
+          </p>
+        </div>
+      </div>
     </div>
   );
-};
-
-export default Login;
+}
