@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,28 +16,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Save } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
-import { useProperties } from '@/hooks/useProperties';
-
-// Extended Property type to include all necessary fields
-interface ExtendedProperty {
-  id: string;
-  name: string;
-  address: string;
-  totalRooms: number;
-  availableRooms: number;
-  occupancyRate: number;
-  owner: string;
-  city?: string;
-  state?: string;
-  zipCode?: string;
-  country?: string;
-  phone?: string;
-  email?: string;
-  timezone?: string;
-  active?: boolean;
-  description?: string;
-  onBookingSites?: boolean;
-}
+import { useProperties, Property } from '@/hooks/useProperties';
 
 interface PropertyFormProps {
   propertyId?: string;
@@ -48,23 +27,43 @@ export default function PropertyForm({ propertyId }: PropertyFormProps) {
   const { toast } = useToast();
   
   // Get property data if editing
-  const { data: propertiesData, isLoading } = useProperties();
-  const property = propertyId ? propertiesData?.find(p => p.id === propertyId) as ExtendedProperty | undefined : undefined;
+  const { data: propertiesData, isLoading, createProperty, updateProperty } = useProperties();
+  const property = propertyId ? propertiesData?.find(p => p.id === propertyId) : undefined;
   
   const [formData, setFormData] = useState({
-    name: property?.name || '',
-    address: property?.address || '',
-    city: property?.city || '',
-    state: property?.state || '',
-    zipCode: property?.zipCode || '',
-    country: property?.country || 'US',
-    phone: property?.phone || '',
-    email: property?.email || '',
-    timezone: property?.timezone || 'est',
-    active: property?.active !== false, // Default to active
-    description: property?.description || '',
-    onBookingSites: property?.onBookingSites !== false, // Default to true
+    name: '',
+    address: '',
+    city: '',
+    state: '',
+    zip_code: '',
+    country: 'US',
+    phone: '',
+    email: '',
+    timezone: 'est',
+    active: true,
+    description: '',
+    on_booking_sites: true,
   });
+
+  // Load property data when available
+  useEffect(() => {
+    if (property) {
+      setFormData({
+        name: property.name || '',
+        address: property.address || '',
+        city: property.city || '',
+        state: property.state || '',
+        zip_code: property.zip_code || '',
+        country: property.country || 'US',
+        phone: property.phone || '',
+        email: property.email || '',
+        timezone: property.timezone || 'est',
+        active: property.active !== false,
+        description: property.description || '',
+        on_booking_sites: property.on_booking_sites !== false,
+      });
+    }
+  }, [property]);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -82,13 +81,16 @@ export default function PropertyForm({ propertyId }: PropertyFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // In a real app, this would save to the server
-    toast({
-      title: property ? "Property Updated" : "Property Created",
-      description: property 
-        ? "The property has been updated successfully." 
-        : "New property has been created successfully."
-    });
+    if (property) {
+      // Update existing property
+      updateProperty({
+        id: propertyId!,
+        ...formData
+      });
+    } else {
+      // Create new property
+      createProperty(formData as Omit<Property, 'id' | 'created_at' | 'updated_at'>);
+    }
     
     navigate('/settings');
   };
@@ -203,11 +205,11 @@ export default function PropertyForm({ propertyId }: PropertyFormProps) {
             
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="zipCode">ZIP/Postal Code *</Label>
+                <Label htmlFor="zip_code">ZIP/Postal Code *</Label>
                 <Input 
-                  id="zipCode"
-                  name="zipCode"
-                  value={formData.zipCode}
+                  id="zip_code"
+                  name="zip_code"
+                  value={formData.zip_code}
                   onChange={handleChange}
                   required
                 />
@@ -289,8 +291,8 @@ export default function PropertyForm({ propertyId }: PropertyFormProps) {
                   </p>
                 </div>
                 <Switch
-                  checked={formData.onBookingSites}
-                  onCheckedChange={(checked) => handleSwitchChange('onBookingSites', checked)}
+                  checked={formData.on_booking_sites}
+                  onCheckedChange={(checked) => handleSwitchChange('on_booking_sites', checked)}
                 />
               </div>
             </div>
